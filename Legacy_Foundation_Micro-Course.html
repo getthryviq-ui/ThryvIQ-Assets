@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ThryvIQ Legacy | Foundation Micro-Course</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #3D52FF;
+            --dark: #231F20;
+            --bg: #F9FAFB;
+            --white: #FFFFFF;
+            --gray-text: #4B5563;
+            --border: #E5E7EB;
+            --radius: 16px;
+            --shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: var(--dark);
+            font-family: 'Inter', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .course-player {
+            width: 100%;
+            max-width: 500px;
+            background: var(--white);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .progress-header {
+            padding: 24px;
+            border-bottom: 1px solid var(--border);
+            background: #fff;
+        }
+
+        .brand-pill {
+            display: inline-block;
+            background: #EEF2FF;
+            color: var(--primary);
+            font-size: 0.7rem;
+            font-weight: 700;
+            padding: 4px 12px;
+            border-radius: 20px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 12px;
+        }
+
+        .progress-track {
+            height: 6px;
+            background: #F3F4F6;
+            border-radius: 10px;
+            position: relative;
+            margin: 10px 0;
+        }
+
+        .progress-fill {
+            position: absolute;
+            height: 100%;
+            background: var(--primary);
+            border-radius: 10px;
+            transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .content-body {
+            padding: 32px;
+            min-height: 420px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .lesson-step {
+            animation: fadeIn 0.4s ease;
+            flex-grow: 1;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .lesson-title {
+            font-size: 1.4rem;
+            font-weight: 700;
+            margin-bottom: 16px;
+            line-height: 1.2;
+        }
+
+        .lesson-summary {
+            font-size: 0.95rem;
+            line-height: 1.7;
+            color: var(--gray-text);
+            margin-bottom: 24px;
+        }
+
+        .action-container {
+            background: #F8FAFF;
+            border: 1.5px solid #E0E7FF;
+            padding: 20px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+        }
+
+        .action-container:hover {
+            border-color: var(--primary);
+            background: #F0F4FF;
+        }
+
+        .action-container.checked {
+            background: #F0FDF4;
+            border-color: #BBF7D0;
+        }
+
+        .checkbox {
+            width: 20px;
+            height: 20px;
+            border: 2px solid #C7D2FE;
+            border-radius: 4px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 12px;
+            vertical-align: middle;
+            background: white;
+            flex-shrink: 0;
+        }
+
+        .checked .checkbox {
+            background: var(--primary);
+            border-color: var(--primary);
+        }
+
+        .checkbox::after {
+            content: '✓';
+            color: white;
+            font-size: 12px;
+            display: none;
+        }
+
+        .checked .checkbox::after {
+            display: block;
+        }
+
+        .action-text {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--dark);
+        }
+
+        .player-nav {
+            padding: 20px 32px 32px 32px;
+            display: flex;
+            gap: 12px;
+        }
+
+        .btn {
+            padding: 14px;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+            border: none;
+            transition: 0.2s;
+            flex: 1;
+        }
+
+        .btn-back {
+            background: white;
+            border: 1px solid var(--border);
+            color: var(--gray-text);
+        }
+
+        .btn-next {
+            background: var(--primary);
+            color: white;
+            box-shadow: 0 4px 10px rgba(61, 82, 255, 0.2);
+        }
+
+        .btn:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+        .btn-download {
+            background: var(--dark);
+            color: white;
+            width: calc(100% - 64px);
+            margin: 0 32px 32px 32px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="course-player">
+    <div class="progress-header">
+        <span class="brand-pill" id="lesson-index">Step 1 of 10</span>
+        <div class="progress-track">
+            <div class="progress-fill" id="bar"></div>
+        </div>
+    </div>
+
+    <div class="content-body" id="stage">
+        <!-- JS Injection -->
+    </div>
+
+    <div class="player-nav">
+        <button class="btn btn-back" id="backBtn" onclick="move(-1)">Back</button>
+        <button class="btn btn-next" id="nextBtn" onclick="move(1)">Continue</button>
+    </div>
+
+    <button class="btn btn-download" onclick="exportPlaybook()">Download Legacy Playbook (.html)</button>
+</div>
+
+<script>
+    const lessons = [
+        {
+            title: "1. Budgeting: Your Financial GPS",
+            summary: "A budget is your financial GPS. By using the 50/30/20 guideline (Needs, Wants, Savings), you create a surplus. Living below your means is about conscious choices so income > expenses.",
+            context: "Living below your means creates a surplus—money you direct toward dreams. Tracking for a month identifies patterns in housing, food, transportation, and entertainment. Control reduces stress and empowers intentional decisions.",
+            action: "Track every dollar for 30 days.",
+            complete: false
+        },
+        {
+            title: "2. Credit: Your Financial Resume",
+            summary: "Credit is your reputation. Aim for 750+ score. High-interest credit card debt is 'bad debt'—it drains resources without return. Stay under 30% utilization.",
+            context: "Good credit unlocks lower interest rates on cars/homes and influences job/rental applications. Payment history is the #1 factor. Check AnnualCreditReport.com yearly to dispute errors and protect your resume.",
+            action: "Check your credit report for errors.",
+            complete: false
+        },
+        {
+            title: "3. Retirement: Compound Magic",
+            summary: "Compound interest is a snowball. Start now. Capture the employer match—it's free money. Prioritize investing the difference between earnings and spend.",
+            context: "Compounding turns returns into more returns. If a 401(k) match is offered, contribute enough to get 100% of it. Explore Traditional vs Roth IRAs based on your current vs future tax brackets.",
+            action: "Verify your employer match percentage.",
+            complete: false
+        },
+        {
+            title: "4. Investing: Making Money Work",
+            summary: "Investing is about building wealth beyond saving. Use low-cost Index Funds or ETFs. Diversification is key—don't put all eggs in one basket.",
+            context: "Invest in assets like stocks or real estate that appreciate or generate income. Index funds are ideal for beginners as they spread risk automatically. Focus on the marathon, not daily fluctuations.",
+            action: "Research one low-cost Index Fund (e.g. VTI).",
+            complete: false
+        },
+        {
+            title: "5. Automation: Effortless Wealth",
+            summary: "Automation is the secret weapon for consistency. Set up direct deposits to savings and auto-pay for bills to remove temptation.",
+            context: "Remove human error. Automate savings, investments (IRA/401k), and debt payments. This ensures you 'pay yourself first' and live below your means without having to think about it every payday.",
+            action: "Set up a recurring automatic transfer.",
+            complete: false
+        },
+        {
+            title: "6. The Emergency Buffer",
+            summary: "Financial fortresses need a liquid core. Aim for 3-6 months of essential expenses in a High-Yield Savings account to handle life's surprises.",
+            context: "Without a buffer, unexpected costs force you to sell investments at bad times or use high-interest debt. This account is for peace of mind, not for growth. Keep it separate and accessible.",
+            action: "Calculate your 3-month survival number.",
+            complete: false
+        },
+        {
+            title: "7. Defense: Asset Protection",
+            summary: "Protection is half the battle. Evaluate Term Life and Disability insurance. Ensure a single accident doesn't derail decades of building.",
+            context: "As your net worth grows, so does your risk profile. Umbrella policies and proper health/life coverage ensure your wealth remains in your family even if disaster strikes.",
+            action: "Review your current life insurance coverage.",
+            complete: false
+        },
+        {
+            title: "8. Tax Efficiency Mastery",
+            summary: "It's not what you make, it's what you keep. Strategically use tax-advantaged accounts to minimize the 'tax drag' on your returns.",
+            context: "Understand the tax hierarchy. Maximize Roth accounts for tax-free growth and 401ks for tax-deferred income. Strategic asset placement can save hundreds of thousands in taxes over a lifetime.",
+            action: "Compare Traditional vs Roth benefits for your bracket.",
+            complete: false
+        },
+        {
+            title: "9. Generational Estate Planning",
+            summary: "A true legacy is planned. Ensure beneficiaries are set on all accounts and a basic will is in place to guide your assets to the right hands.",
+            context: "Estate planning isn't just for the elderly. It's about ensuring your 'GPS' continues to guide your loved ones. Proper titling of assets avoids probate and keeps your legacy private and efficient.",
+            action: "Check beneficiary labels on all bank accounts.",
+            complete: false
+        },
+        {
+            title: "10. The Legacy Mindset",
+            summary: "Shift from consumer to producer. Focus on buying assets that pay you. Stay disciplined, stay consistent, and remember your 'Why.'",
+            context: "The final transformation is psychological. High-Net-Worth individuals view money as a tool for production, not consumption. Your legacy is the sum of your habits, not your luck.",
+            action: "Write down your ultimate 'Why' for building wealth.",
+            complete: false
+        }
+    ];
+
+    let step = 0;
+
+    function render() {
+        const lesson = lessons[step];
+        const stage = document.getElementById('stage');
+        
+        stage.innerHTML = `
+            <div class="lesson-step">
+                <h1 class="lesson-title">${lesson.title}</h1>
+                <p class="lesson-summary">${lesson.summary}</p>
+                <div class="action-container ${lesson.complete ? 'checked' : ''}" onclick="toggle()">
+                    <div class="checkbox"></div>
+                    <span class="action-text">Action: ${lesson.action}</span>
+                </div>
+            </div>
+        `;
+
+        document.getElementById('lesson-index').innerText = `Lesson ${step + 1} of 10`;
+        document.getElementById('backBtn').disabled = step === 0;
+        document.getElementById('nextBtn').innerText = step === lessons.length - 1 ? "Finish" : "Next Lesson";
+        
+        updateProgress();
+    }
+
+    function toggle() {
+        lessons[step].complete = !lessons[step].complete;
+        render();
+    }
+
+    function move(dir) {
+        if (step + dir >= 0 && step + dir < lessons.length) {
+            step += dir;
+            render();
+        } else if (step + dir === lessons.length) {
+            finish();
+        }
+    }
+
+    function updateProgress() {
+        const done = lessons.filter(l => l.complete).length;
+        const pct = (done / lessons.length) * 100;
+        document.getElementById('bar').style.width = pct + '%';
+    }
+
+    function finish() {
+        document.getElementById('stage').innerHTML = `
+            <div class="lesson-step" style="text-align: center; padding-top: 40px;">
+                <div style="font-size: 3rem; margin-bottom: 20px;">🏆</div>
+                <h1 class="lesson-title">Legacy Foundation Set</h1>
+                <p class="lesson-summary">You have completed all 10 modules. Download your premium Legacy Playbook below to keep a permanent record of these concepts.</p>
+            </div>
+        `;
+        document.getElementById('nextBtn').style.display = 'none';
+    }
+
+    function exportPlaybook() {
+        let lessonCards = lessons.map((l, i) => `
+            <div style="margin-bottom: 30px; border: 1px solid #E5E7EB; padding: 25px; border-radius: 12px; page-break-inside: avoid;">
+                <h2 style="color: #3D52FF; margin-top: 0; font-size: 1.2rem;">Lesson ${i+1}: ${l.title.replace(/^\d+\.\s*/, '')}</h2>
+                <p style="color: #231F20; font-weight: 600; font-size: 0.95rem; margin-bottom: 10px;">The Principle:</p>
+                <p style="color: #4B5563; font-size: 0.9rem; line-height: 1.6; margin-bottom: 15px;">${l.summary}</p>
+                <p style="color: #231F20; font-weight: 600; font-size: 0.95rem; margin-bottom: 10px;">Deep Dive Context:</p>
+                <p style="color: #4B5563; font-size: 0.9rem; line-height: 1.6; margin-bottom: 15px;">${l.context}</p>
+                <div style="background: #F3F4F6; padding: 12px; border-radius: 8px; font-size: 0.85rem; color: #231F20;">
+                    <strong>Next Action:</strong> ${l.action}
+                </div>
+            </div>
+        `).join('');
+
+        const htmlContent = `
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+                <style>
+                    body { font-family: 'Inter', sans-serif; padding: 40px; color: #231F20; max-width: 800px; margin: auto; }
+                    .header { border-bottom: 2px solid #3D52FF; padding-bottom: 20px; margin-bottom: 40px; }
+                    .logo { font-weight: 700; font-size: 1.5rem; letter-spacing: -1px; }
+                    .logo span { color: #3D52FF; }
+                </style>
+            </head>
+            <body>
+                <div class="header">
+                    <div class="logo">ThryvIQ<span>Legacy</span></div>
+                    <p style="color: #6B7280; font-size: 0.9rem; margin-top: 5px;">Foundation Mastery Playbook</p>
+                </div>
+                <h1 style="margin-bottom: 30px; font-size: 2rem;">Financial Foundation: Full Playbook</h1>
+                ${lessonCards}
+                <div style="text-align: center; margin-top: 50px; font-size: 0.8rem; color: #9CA3AF;">
+                    © ${new Date().getFullYear()} ThryvIQ Legacy. All rights reserved.
+                </div>
+            </body>
+            </html>
+        `;
+
+        const blob = new Blob([htmlContent], { type: 'text/html' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "ThryvIQ_Legacy_Playbook.html";
+        a.click();
+    }
+
+    render();
+</script>
+</body>
+</html>
