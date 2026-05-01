@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lifestyle Inflation Simulator | ThryvIQ Legacy</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-blue: #3D52FF;
+            --text-dark: #231F20;
+            --bg-light: #F9FAFB;
+            --white: #FFFFFF;
+            --gray-100: #E5E7EB;
+            --gray-500: #6B7280;
+            --accent-soft: rgba(61, 82, 255, 0.05);
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            --shadow-sm: 0 1px 3px rgba(0,0,0,0.1);
+            --shadow-md: 0 10px 25px -5px rgba(0,0,0,0.05), 0 8px 10px -6px rgba(0,0,0,0.05);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            background-color: var(--bg-light);
+            color: var(--text-dark);
+            line-height: 1.6;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 850px;
+            background: var(--white);
+            border-radius: 16px;
+            padding: 40px;
+            box-shadow: var(--shadow-md);
+        }
+
+        header {
+            margin-bottom: 32px;
+            border-bottom: 1px solid var(--gray-100);
+            padding-bottom: 24px;
+        }
+
+        .brand-tag {
+            color: var(--primary-blue);
+            text-transform: uppercase;
+            font-weight: 700;
+            font-size: 0.75rem;
+            letter-spacing: 0.1em;
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        h1 {
+            font-size: 1.85rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            margin-bottom: 8px;
+        }
+
+        .subtitle {
+            color: var(--gray-500);
+            font-size: 0.95rem;
+        }
+
+        .tool-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 32px;
+        }
+
+        @media (max-width: 768px) {
+            .tool-grid { grid-template-columns: 1fr; }
+            .container { padding: 24px; }
+        }
+
+        /* Input Styles */
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: var(--text-dark);
+        }
+
+        .input-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .input-wrapper span {
+            position: absolute;
+            left: 12px;
+            color: var(--gray-500);
+            font-size: 0.9rem;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px 12px 12px 28px;
+            border: 1px solid var(--gray-100);
+            border-radius: 8px;
+            font-size: 1rem;
+            font-family: inherit;
+            transition: var(--transition);
+            background: var(--white);
+        }
+
+        input:focus {
+            outline: none;
+            border-color: var(--primary-blue);
+            box-shadow: 0 0 0 3px var(--accent-soft);
+        }
+
+        /* Results Card */
+        .results-panel {
+            background: var(--bg-light);
+            border-radius: 12px;
+            padding: 24px;
+            border: 1px solid var(--gray-100);
+        }
+
+        .result-item {
+            margin-bottom: 20px;
+        }
+
+        .result-label {
+            font-size: 0.8rem;
+            color: var(--gray-500);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            font-weight: 600;
+        }
+
+        .result-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text-dark);
+        }
+
+        .result-value.highlight {
+            color: var(--primary-blue);
+        }
+
+        /* Visualization */
+        .viz-container {
+            margin-top: 24px;
+            padding-top: 24px;
+            border-top: 1px dashed var(--gray-100);
+        }
+
+        .bar-group {
+            margin-bottom: 16px;
+        }
+
+        .bar-label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.75rem;
+            margin-bottom: 4px;
+            font-weight: 500;
+        }
+
+        .bar-bg {
+            height: 12px;
+            background: var(--gray-100);
+            border-radius: 6px;
+            overflow: hidden;
+        }
+
+        .bar-fill {
+            height: 100%;
+            background: var(--primary-blue);
+            width: 0%;
+            transition: width 1s cubic-bezier(0.17, 0.67, 0.83, 0.67);
+        }
+
+        .bar-fill.secondary {
+            background: #D1D5DB;
+        }
+
+        /* Behavioral Insight Box */
+        .insight-box {
+            margin-top: 32px;
+            padding: 20px;
+            background: var(--accent-soft);
+            border-left: 4px solid var(--primary-blue);
+            border-radius: 4px 12px 12px 4px;
+        }
+
+        .insight-title {
+            font-weight: 700;
+            font-size: 0.9rem;
+            margin-bottom: 8px;
+            color: var(--primary-blue);
+            display: flex;
+            align-items: center;
+        }
+
+        .insight-content {
+            font-size: 0.9rem;
+            font-style: italic;
+            color: var(--text-dark);
+        }
+
+        /* Action Buttons */
+        .actions {
+            margin-top: 32px;
+            display: flex;
+            gap: 12px;
+        }
+
+        button {
+            cursor: pointer;
+            border: none;
+            border-radius: 8px;
+            padding: 14px 24px;
+            font-weight: 600;
+            font-size: 0.95rem;
+            transition: var(--transition);
+            font-family: inherit;
+        }
+
+        .btn-primary {
+            background: var(--primary-blue);
+            color: white;
+            flex: 1;
+        }
+
+        .btn-primary:hover {
+            opacity: 0.9;
+            transform: translateY(-1px);
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 1px solid var(--gray-100);
+            color: var(--gray-500);
+        }
+
+        .btn-outline:hover {
+            background: var(--gray-100);
+            color: var(--text-dark);
+        }
+
+        .fade-in {
+            animation: fadeIn 0.5s ease forwards;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <span class="brand-tag">ThryvIQ Legacy Exclusive</span>
+        <h1>Lifestyle Inflation Simulator</h1>
+        <p class="subtitle">Calculate the true long-term cost of your upcoming luxury acquisitions.</p>
+    </header>
+
+    <div class="tool-grid">
+        <div class="inputs">
+            <div class="input-group">
+                <label for="purchasePrice">Planned Luxury Purchase ($)</label>
+                <div class="input-wrapper">
+                    <span>$</span>
+                    <input type="number" id="purchasePrice" placeholder="50,000" value="25000">
+                </div>
+            </div>
+
+            <div class="input-group">
+                <label for="monthlySavings">Current Monthly Savings ($)</label>
+                <div class="input-wrapper">
+                    <span>$</span>
+                    <input type="number" id="monthlySavings" placeholder="5,000" value="3000">
+                </div>
+            </div>
+
+            <div class="input-group">
+                <label for="annualReturn">Expected Annual Return (%)</label>
+                <div class="input-wrapper">
+                    <span>%</span>
+                    <input type="number" id="annualReturn" placeholder="8" value="8" step="0.1">
+                </div>
+            </div>
+
+            <div class="input-group">
+                <label for="timeHorizon">Time Horizon (Years)</label>
+                <div class="input-wrapper">
+                    <span>⏳</span>
+                    <input type="number" id="timeHorizon" placeholder="10" value="10">
+                </div>
+            </div>
+        </div>
+
+        <div class="results">
+            <div class="results-panel">
+                <div class="result-item">
+                    <div class="result-label">Future Opportunity Cost</div>
+                    <div class="result-value highlight" id="opportunityCost">$0</div>
+                </div>
+                
+                <div class="result-item">
+                    <div class="result-label">Financial Independence Deferred</div>
+                    <div class="result-value" id="monthsDeferred">0 Months</div>
+                </div>
+
+                <div class="viz-container">
+                    <div class="bar-group">
+                        <div class="bar-label">
+                            <span>Cost Today</span>
+                            <span id="labelToday">$25,000</span>
+                        </div>
+                        <div class="bar-bg">
+                            <div id="barToday" class="bar-fill secondary" style="width: 30%"></div>
+                        </div>
+                    </div>
+                    <div class="bar-group">
+                        <div class="bar-label">
+                            <span>Future Value Lost</span>
+                            <span id="labelFuture">$0</span>
+                        </div>
+                        <div class="bar-bg">
+                            <div id="barFuture" class="bar-fill" style="width: 0%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="insight-box" id="behavioralInsight">
+        <div class="insight-title">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 8px;"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg>
+            Legacy Insight
+        </div>
+        <div class="insight-content" id="insightText">
+            The true cost of luxury is not the price tag today, but the compounding freedom of tomorrow.
+        </div>
+    </div>
+
+    <div class="actions">
+        <button class="btn-primary" onclick="calculate()">Recalculate Impact</button>
+        <button class="btn-outline" onclick="exportReport()">Download Insight Report</button>
+    </div>
+</div>
+
+<script>
+    function formatCurrency(val) {
+        return new Intl.NumberFormat('en-US', {
+            style: 'currency',
+            currency: 'USD',
+            maximumFractionDigits: 0
+        }).format(val);
+    }
+
+    function calculate() {
+        const purchasePrice = parseFloat(document.getElementById('purchasePrice').value) || 0;
+        const monthlySavings = parseFloat(document.getElementById('monthlySavings').value) || 1;
+        const annualReturn = parseFloat(document.getElementById('annualReturn').value) / 100 || 0;
+        const years = parseFloat(document.getElementById('timeHorizon').value) || 0;
+
+        // Opportunity Cost Formula: FV = PV * (1 + r)^n
+        const futureValue = purchasePrice * Math.pow((1 + annualReturn), years);
+        
+        // Months Deferred: How many months of current savings does that future value represent?
+        // Note: We use the future value divided by current monthly capacity to show the "work time" lost.
+        const months = futureValue / monthlySavings;
+
+        // Update DOM
+        document.getElementById('opportunityCost').innerText = formatCurrency(futureValue);
+        document.getElementById('monthsDeferred').innerText = `${Math.round(months)} Months`;
+        
+        document.getElementById('labelToday').innerText = formatCurrency(purchasePrice);
+        document.getElementById('labelFuture').innerText = formatCurrency(futureValue);
+
+        // Update Bars (Normalized logic)
+        const maxVal = Math.max(futureValue, purchasePrice * 2);
+        const todayWidth = (purchasePrice / maxVal) * 100;
+        const futureWidth = (futureValue / maxVal) * 100;
+
+        document.getElementById('barToday').style.width = `${todayWidth}%`;
+        document.getElementById('barFuture').style.width = `${futureWidth}%`;
+
+        // Behavioral Insight Logic
+        let insight = "";
+        if (months > 48) {
+            insight = `This purchase isn't just ${formatCurrency(purchasePrice)}. It is a commitment to work an additional ${Math.round(months / 12)} years and ${Math.round(months % 12)} months. Ask yourself: Is the utility of this item greater than the total freedom of your time?`;
+        } else if (months > 12) {
+            insight = `Acquiring this asset today effectively erases over a year of your recent progress. For every hour you enjoy this purchase, remember it cost you ${Math.round(months)} months of independent decision-making.`;
+        } else {
+            insight = `While the immediate impact seems manageable, legacy is built through the accumulation of small, disciplined choices. Compounded over time, even small leaks sink great ships.`;
+        }
+        document.getElementById('insightText').innerText = insight;
+    }
+
+    function exportReport() {
+        const data = [
+            ['ThryvIQ Legacy - Lifestyle Inflation Report'],
+            ['Date', new Date().toLocaleDateString()],
+            [''],
+            ['Input Metrics'],
+            ['Purchase Cost', document.getElementById('purchasePrice').value],
+            ['Monthly Savings', document.getElementById('monthlySavings').value],
+            ['Expected Return', document.getElementById('annualReturn').value + '%'],
+            ['Time Horizon', document.getElementById('timeHorizon').value + ' Years'],
+            [''],
+            ['Financial Impact'],
+            ['Future Opportunity Cost', document.getElementById('opportunityCost').innerText],
+            ['Months of Independence Lost', document.getElementById('monthsDeferred').innerText],
+            [''],
+            ['Behavioral Insight'],
+            [document.getElementById('insightText').innerText.replace(/,/g, "")]
+        ];
+
+        let csvContent = "data:text/csv;charset=utf-8," 
+            + data.map(e => e.join(",")).join("\n");
+
+        const encodedUri = encodeURI(csvContent);
+        const link = document.createElement("a");
+        link.setAttribute("href", encodedUri);
+        link.setAttribute("download", "ThryvIQ_Legacy_Insight.csv");
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+
+    // Initialize
+    window.onload = calculate;
+
+    // Listen for changes
+    document.querySelectorAll('input').forEach(input => {
+        input.addEventListener('input', calculate);
+    });
+</script>
+
+</body>
+</html>
