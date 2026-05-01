@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ThryvIQ | Debt Avalanche Toolkit</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        .cell-input { border: 1px solid #d1d5db; padding: 4px 8px; width: 100%; outline: none; }
+        .cell-input:focus { border-color: #2563eb; ring: 2px ring #3b82f6; }
+        .sheet-table th { background-color: #f9fafb; border: 1px solid #e5e7eb; padding: 8px; text-align: left; font-size: 0.875rem; }
+        .sheet-table td { border: 1px solid #e5e7eb; padding: 0; }
+        .branding-header { background: linear-gradient(90deg, #1e3a8a 0%, #3b82f6 100%); color: white; }
+    </style>
+</head>
+<body class="p-4 md:p-8">
+    <div class="max-w-6xl mx-auto bg-white shadow-2xl rounded-lg overflow-hidden border border-gray-200">
+        <!-- Branding Block -->
+        <div class="branding-header p-6">
+            <h1 class="text-2xl font-bold">ThryvIQ | Debt Avalanche Calculator</h1>
+            <p class="text-blue-100 text-sm">Strategic Debt Elimination Toolkit</p>
+        </div>
+
+        <!-- Tab Navigation -->
+        <div class="flex border-b border-gray-200 bg-gray-50">
+            <button onclick="showTab('input')" id="tab-btn-input" class="px-6 py-3 font-medium text-sm border-r border-gray-200 hover:bg-white active-tab">1] Input</button>
+            <button onclick="showTab('plan')" id="tab-btn-plan" class="px-6 py-3 font-medium text-sm border-r border-gray-200 hover:bg-white">2] Avalanche Plan</button>
+            <button onclick="showTab('dashboard')" id="tab-btn-dashboard" class="px-6 py-3 font-medium text-sm hover:bg-white">3] Dashboard</button>
+        </div>
+
+        <!-- TAB 1: INPUT -->
+        <div id="input" class="tab-content active p-6">
+            <div class="mb-8 bg-blue-50 p-4 rounded-md border border-blue-100">
+                <h3 class="font-semibold text-blue-900 mb-2">Global Settings</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Total Monthly Budget for Debt</label>
+                        <input type="number" id="monthlyBudget" class="text-lg font-bold p-2 border rounded w-full" value="1500" oninput="calculate()">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Extra Monthly Payment (Calculated)</label>
+                        <div id="extraPaymentDisplay" class="text-lg font-bold p-2 text-green-600 bg-white border rounded w-full">$0.00</div>
+                    </div>
+                </div>
+            </div>
+
+            <table class="sheet-table w-full mb-4">
+                <thead>
+                    <tr>
+                        <th class="w-12">#</th>
+                        <th>Account Name</th>
+                        <th>Current Balance ($)</th>
+                        <th>Interest Rate (APR %)</th>
+                        <th>Min. Monthly ($)</th>
+                    </tr>
+                </thead>
+                <tbody id="debtRows">
+                    <!-- Rows generated via JS -->
+                </tbody>
+            </table>
+            <div class="text-right font-bold p-2 bg-gray-50 border border-t-0">
+                Total Minimums: <span id="totalMinimums">$0.00</span>
+            </div>
+        </div>
+
+        <!-- TAB 2: AVALANCHE PLAN -->
+        <div id="plan" class="tab-content p-6">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="font-bold text-gray-800">Avalanche Payoff Schedule</h3>
+                <span class="text-xs text-gray-500 italic">Automatically sorted by highest APR</span>
+            </div>
+            
+            <div class="overflow-x-auto">
+                <table id="planTable" class="sheet-table w-full">
+                    <thead>
+                        <tr id="planHeader">
+                            <th>Month</th>
+                            <!-- Debt columns added by JS -->
+                        </tr>
+                    </thead>
+                    <tbody id="planBody">
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- TAB 3: DASHBOARD -->
+        <div id="dashboard" class="tab-content p-6 text-center">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                <div class="bg-white border rounded-xl p-6 shadow-sm">
+                    <p class="text-gray-500 text-sm font-medium uppercase mb-2">Total Debt Owed</p>
+                    <h2 id="dashTotalDebt" class="text-3xl font-bold text-gray-900">$0</h2>
+                </div>
+                <div class="bg-white border rounded-xl p-6 shadow-sm">
+                    <p class="text-gray-500 text-sm font-medium uppercase mb-2">Months to Debt Free</p>
+                    <h2 id="dashMonths" class="text-3xl font-bold text-blue-600">0</h2>
+                </div>
+                <div class="bg-white border rounded-xl p-6 shadow-sm">
+                    <p class="text-gray-500 text-sm font-medium uppercase mb-2">Total Interest Paid</p>
+                    <h2 id="dashTotalInterest" class="text-3xl font-bold text-red-500">$0</h2>
+                </div>
+            </div>
+
+            <div class="bg-gray-50 rounded-xl p-8 border border-dashed border-gray-300">
+                <h4 class="text-lg font-bold mb-4">Payoff Progress</h4>
+                <div class="w-full bg-gray-200 rounded-full h-8 overflow-hidden">
+                    <div id="progressBar" class="bg-green-500 h-full transition-all duration-1000" style="width: 0%"></div>
+                </div>
+                <p id="progressLabel" class="mt-2 text-sm font-medium text-gray-600">Start entering debts to see progress</p>
+            </div>
+        </div>
+
+        <!-- Footer / Sheet Tabs Style -->
+        <div class="bg-gray-100 p-2 text-[10px] text-gray-400 flex gap-4 uppercase tracking-widest border-t">
+            <span>Sheet1: Input</span>
+            <span>Sheet2: Avalanche Plan</span>
+            <span>Sheet3: Dashboard</span>
+        </div>
+    </div>
+
+    <script>
+        const DEBT_COUNT = 10;
+        let debts = [];
+
+        function init() {
+            const tbody = document.getElementById('debtRows');
+            for (let i = 0; i < DEBT_COUNT; i++) {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td class="text-center text-xs text-gray-400 bg-gray-50">${i + 1}</td>
+                    <td><input type="text" class="cell-input debt-name" placeholder="Debt Name" oninput="calculate()"></td>
+                    <td><input type="number" class="cell-input debt-balance" placeholder="0.00" oninput="calculate()"></td>
+                    <td><input type="number" class="cell-input debt-apr" placeholder="0.00" oninput="calculate()"></td>
+                    <td><input type="number" class="cell-input debt-min" placeholder="0.00" oninput="calculate()"></td>
+                `;
+                tbody.appendChild(tr);
+            }
+            
+            // Add some dummy data
+            const rows = document.querySelectorAll('#debtRows tr');
+            const data = [
+                ["Credit Card A", 5000, 24.99, 150],
+                ["Car Loan", 15000, 6.5, 350],
+                ["Student Loan", 12000, 4.5, 200]
+            ];
+            data.forEach((d, i) => {
+                const inputs = rows[i].querySelectorAll('input');
+                inputs.value = d;
+                inputs.value = d;
+                inputs.value = d;
+                inputs.value = d;
+            });
+
+            calculate();
+        }
+
+        function calculate() {
+            const rows = document.querySelectorAll('#debtRows tr');
+            const monthlyBudget = parseFloat(document.getElementById('monthlyBudget').value) || 0;
+            debts = [];
+            let totalMins = 0;
+            let totalStartingDebt = 0;
+
+            rows.forEach(row => {
+                const name = row.querySelector('.debt-name').value;
+                const balance = parseFloat(row.querySelector('.debt-balance').value) || 0;
+                const apr = parseFloat(row.querySelector('.debt-apr').value) || 0;
+                const min = parseFloat(row.querySelector('.debt-min').value) || 0;
+
+                if (name && balance > 0) {
+                    debts.push({ name, balance, apr: apr / 100, min, currentBalance: balance });
+                    totalMins += min;
+                    totalStartingDebt += balance;
+                }
+            });
+
+            const extra = Math.max(0, monthlyBudget - totalMins);
+            document.getElementById('totalMinimums').innerText = `$${totalMins.toLocaleString(undefined, {minimumFractionDigits: 2})}`;
+            document.getElementById('extraPaymentDisplay').innerText = `$${extra.toLocaleString(undefined, {minimumFractionDigits: 2})}`;
+
+            generatePlan(monthlyBudget, totalStartingDebt);
+        }
+
+        function generatePlan(monthlyBudget, totalStartingDebt) {
+            // Sort by APR Descending (Avalanche)
+            const sortedDebts = [...debts].sort((a, b) => b.apr - a.apr);
+            const planHeader = document.getElementById('planHeader');
+            const planBody = document.getElementById('planBody');
+            
+            // Reset tables
+            planHeader.innerHTML = '<th>Month</th>';
+            sortedDebts.forEach(d => {
+                const th = document.createElement('th');
+                th.innerText = d.name;
+                planHeader.appendChild(th);
+            });
+            planHeader.innerHTML += '<th>Total Interest Paid</th>';
+            planBody.innerHTML = '';
+
+            let months = 0;
+            let totalInterestPaid = 0;
+            let activeDebts = sortedDebts.map(d => ({...d}));
+            const MAX_MONTHS = 360;
+
+            while (activeDebts.some(d => d.currentBalance > 0) && months < MAX_MONTHS) {
+                months++;
+                let availablePool = monthlyBudget;
+                let monthlyInterest = 0;
+
+                // 1. Charge Interest and pay Minimums
+                activeDebts.forEach(d => {
+                    if (d.currentBalance > 0) {
+                        const interest = d.currentBalance * (d.apr / 12);
+                        monthlyInterest += interest;
+                        totalInterestPaid += interest;
+                        d.currentBalance += interest;
+
+                        const payment = Math.min(d.currentBalance, d.min);
+                        d.currentBalance -= payment;
+                        availablePool -= payment;
+                    }
+                });
+
+                // 2. Apply Extra (Avalanche)
+                for (let d of activeDebts) {
+                    if (d.currentBalance > 0 && availablePool > 0) {
+                        const extraPayment = Math.min(d.currentBalance, availablePool);
+                        d.currentBalance -= extraPayment;
+                        availablePool -= extraPayment;
+                    }
+                }
+
+                // Append row to Plan table
+                if (months <= 36) { // Limit visualization for performance
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `<td class="bg-gray-50 text-center font-bold">${months}</td>`;
+                    activeDebts.forEach(d => {
+                        tr.innerHTML += `<td class="text-right p-2 ${d.currentBalance <= 0 ? 'text-green-600 bg-green-50 font-bold' : ''}">
+                            $${Math.round(d.currentBalance).toLocaleString()}
+                        </td>`;
+                    });
+                    tr.innerHTML += `<td class="text-right p-2 text-red-400 italic">$${Math.round(totalInterestPaid).toLocaleString()}</td>`;
+                    planBody.appendChild(tr);
+                }
+            }
+
+            updateDashboard(totalStartingDebt, months, totalInterestPaid);
+        }
+
+        function updateDashboard(totalDebt, months, interest) {
+            document.getElementById('dashTotalDebt').innerText = `$${totalDebt.toLocaleString()}`;
+            document.getElementById('dashMonths').innerText = months >= 360 ? "30+ Years" : months;
+            document.getElementById('dashTotalInterest').innerText = `$${Math.round(interest).toLocaleString()}`;
+            
+            const progress = totalDebt > 0 ? 10 : 0; // Simple simulation of "start"
+            document.getElementById('progressBar').style.width = `100%`; // In this static view, we show the end goal
+            document.getElementById('progressLabel').innerText = `Strategic Plan Ready: Eliminate all debt in ${months} months.`;
+        }
+
+        function showTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+            
+            document.querySelectorAll('button[id^="tab-btn-"]').forEach(b => b.classList.remove('bg-white', 'border-b-2', 'border-blue-500', 'text-blue-600'));
+            const activeBtn = document.getElementById('tab-btn-' + tabId);
+            activeBtn.classList.add('bg-white', 'border-b-2', 'border-blue-500', 'text-blue-600');
+        }
+
+        window.onload = init;
+    </script>
+</body>
+</html>
