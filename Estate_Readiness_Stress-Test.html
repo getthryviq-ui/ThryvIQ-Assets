@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ThryvIQ Estate Readiness Stress-Test</title>
+    <style>
+        :root {
+            --primary-accent: #3D52FF;
+            --brand-dark: #231F20;
+            --bg-light: #F9FAFB;
+            --white: #FFFFFF;
+            --border-color: #E5E7EB;
+            --text-muted: #6B7280;
+            --success: #10B981;
+            --warning: #F59E0B;
+            --danger: #EF4444;
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-light);
+            color: var(--brand-dark);
+            line-height: 1.5;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 600px;
+            margin-top: 20px;
+        }
+
+        /* Card Aesthetic */
+        .card {
+            background: var(--white);
+            border-radius: 12px;
+            box-shadow: var(--shadow-lg);
+            padding: 2.5rem;
+            border: 1px solid var(--border-color);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .brand-logo {
+            font-weight: 800;
+            font-size: 1.25rem;
+            color: var(--primary-accent);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 0.5rem;
+            display: block;
+        }
+
+        h1 {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: var(--brand-dark);
+            margin-bottom: 0.5rem;
+        }
+
+        .subtitle {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+        }
+
+        /* Progress Bar */
+        .progress-container {
+            width: 100%;
+            height: 6px;
+            background: var(--border-color);
+            border-radius: 10px;
+            margin-bottom: 2.5rem;
+            overflow: hidden;
+        }
+
+        #progress-bar {
+            width: 10%;
+            height: 100%;
+            background: var(--primary-accent);
+            transition: width 0.3s ease;
+        }
+
+        /* Question Logic */
+        .question-wrapper {
+            display: none;
+        }
+
+        .question-wrapper.active {
+            display: block;
+            animation: fadeIn 0.4s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .question-text {
+            font-size: 1.15rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            color: var(--brand-dark);
+        }
+
+        .options {
+            display: grid;
+            gap: 12px;
+        }
+
+        .option-btn {
+            background: var(--white);
+            border: 2px solid var(--border-color);
+            padding: 1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            text-align: left;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .option-btn:hover {
+            border-color: var(--primary-accent);
+            background-color: #f0f2ff;
+        }
+
+        .option-btn:active {
+            transform: scale(0.98);
+        }
+
+        /* Results Screen */
+        .results {
+            display: none;
+            text-align: center;
+        }
+
+        .score-circle {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            margin: 0 auto 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: var(--white);
+            box-shadow: var(--shadow-md);
+        }
+
+        .rating-badge {
+            display: inline-block;
+            padding: 0.5rem 1.25rem;
+            border-radius: 50px;
+            font-weight: 700;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            margin-bottom: 1.5rem;
+        }
+
+        .action-plan {
+            text-align: left;
+            background: var(--bg-light);
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin-top: 1.5rem;
+            border-left: 4px solid var(--primary-accent);
+        }
+
+        .action-plan h3 {
+            font-size: 1rem;
+            margin-bottom: 0.75rem;
+            color: var(--brand-dark);
+        }
+
+        .action-plan ul {
+            list-style: none;
+        }
+
+        .action-plan li {
+            font-size: 0.9rem;
+            margin-bottom: 0.5rem;
+            padding-left: 1.5rem;
+            position: relative;
+        }
+
+        .action-plan li::before {
+            content: "→";
+            position: absolute;
+            left: 0;
+            color: var(--primary-accent);
+        }
+
+        .btn-group {
+            margin-top: 2rem;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .primary-btn {
+            background: var(--primary-accent);
+            color: var(--white);
+            border: none;
+            padding: 1rem;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: opacity 0.2s;
+            text-decoration: none;
+        }
+
+        .secondary-btn {
+            background: transparent;
+            color: var(--text-muted);
+            border: 1px solid var(--border-color);
+            padding: 0.75rem;
+            border-radius: 8px;
+            font-weight: 500;
+            cursor: pointer;
+        }
+
+        .footer-link {
+            margin-top: 2rem;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            text-decoration: none;
+        }
+
+        /* Result-specific Colors */
+        .ready { background-color: var(--success); }
+        .review { background-color: var(--warning); }
+        .critical { background-color: var(--danger); }
+
+        .bg-ready { background-color: #ecfdf5; color: #065f46; }
+        .bg-review { background-color: #fffbeb; color: #92400e; }
+        .bg-critical { background-color: #fef2f2; color: #991b1b; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="card">
+        <div id="quiz-ui">
+            <div class="header">
+                <span class="brand-logo">ThryvIQ</span>
+                <h1>Estate Readiness Stress-Test</h1>
+                <p class="subtitle">Evaluate your legacy resilience in 2 minutes.</p>
+            </div>
+
+            <div class="progress-container">
+                <div id="progress-bar"></div>
+            </div>
+
+            <div id="question-container">
+                <!-- Questions will be injected here by JS -->
+            </div>
+        </div>
+
+        <div id="results-ui" class="results">
+            <div class="header">
+                <span class="brand-logo">Your Results</span>
+                <h1 id="result-title">Ready for Review</h1>
+            </div>
+
+            <div id="score-circle" class="score-circle">0</div>
+            <div id="rating-badge" class="rating-badge">Improving</div>
+
+            <div id="action-plan-box" class="action-plan">
+                <h3>Immediate Action Steps:</h3>
+                <ul id="action-list">
+                    <!-- Actions injected by JS -->
+                </ul>
+            </div>
+
+            <div class="btn-group">
+                <button class="primary-btn" onclick="downloadCSV()">Download Readiness Report</button>
+                <button class="secondary-btn" onclick="location.reload()">Retake Assessment</button>
+            </div>
+            
+            <a href="https://GetThryvIQ.com" target="_blank" class="footer-link">Visit GetThryvIQ.com</a>
+        </div>
+    </div>
+</div>
+
+<script>
+    const questions = [
+        { q: "Do you have a valid, updated Will or Trust in place?", category: "Legal" },
+        { q: "Have you reviewed your primary and contingent beneficiaries in the last 12 months?", category: "Beneficiaries" },
+        { q: "Do you have a designated Power of Attorney for healthcare and finances?", category: "Legal" },
+        { q: "Is there a centralized list of all your digital assets and passwords accessible to your heirs?", category: "Digital" },
+        { q: "Does your current life insurance coverage meet the specific needs of your dependents?", category: "Insurance" },
+        { q: "Have you documented your final wishes/funeral preferences formally?", category: "Personal" },
+        { q: "Are your legal and financial professionals (Attorney, CPA, Advisor) introduced to your family?", category: "Professional" },
+        { q: "Have you updated your estate plan to reflect major life changes (births, deaths, divorces)?", category: "Legal" },
+        { q: "Is your business succession plan (if applicable) legally documented and funded?", category: "Business" },
+        { q: "Do your executors know the exact physical or cloud location of your original documents?", category: "Access" }
+    ];
+
+    let currentStep = 0;
+    let score = 0;
+    let answers = [];
+
+    const questionContainer = document.getElementById('question-container');
+    const progressBar = document.getElementById('progress-bar');
+    const quizUI = document.getElementById('quiz-ui');
+    const resultsUI = document.getElementById('results-ui');
+
+    function initQuiz() {
+        questions.forEach((item, index) => {
+            const wrapper = document.createElement('div');
+            wrapper.className = `question-wrapper ${index === 0 ? 'active' : ''}`;
+            wrapper.id = `q-${index}`;
+            
+            wrapper.innerHTML = `
+                <p class="subtitle" style="margin-bottom: 0.5rem">Question ${index + 1} of 10 • ${item.category}</p>
+                <div class="question-text">${item.q}</div>
+                <div class="options">
+                    <button class="option-btn" onclick="handleAnswer(${index}, true)">
+                        Yes <span>+1</span>
+                    </button>
+                    <button class="option-btn" onclick="handleAnswer(${index}, false)">
+                        No <span>+0</span>
+                    </button>
+                </div>
+            `;
+            questionContainer.appendChild(wrapper);
+        });
+    }
+
+    function handleAnswer(index, isYes) {
+        answers.push({ question: questions[index].q, answer: isYes ? "Yes" : "No" });
+        if (isYes) score++;
+
+        document.getElementById(`q-${index}`).classList.remove('active');
+        
+        if (index + 1 < questions.length) {
+            currentStep = index + 1;
+            document.getElementById(`q-${currentStep}`).classList.add('active');
+            progressBar.style.width = `${((currentStep + 1) / questions.length) * 100}%`;
+        } else {
+            showResults();
+        }
+    }
+
+    function showResults() {
+        quizUI.style.display = 'none';
+        resultsUI.style.display = 'block';
+
+        const scoreCircle = document.getElementById('score-circle');
+        const ratingBadge = document.getElementById('rating-badge');
+        const actionList = document.getElementById('action-list');
+        const resultTitle = document.getElementById('result-title');
+
+        scoreCircle.innerText = `${score}/10`;
+        
+        let rating = "";
+        let actions = [];
+        let colorClass = "";
+        let badgeClass = "";
+
+        if (score >= 8) {
+            rating = "Legacy Ready";
+            resultTitle.innerText = "Exceptional Preparation";
+            colorClass = "ready";
+            badgeClass = "bg-ready";
+            actions = [
+                "Schedule a review with your advisor to optimize tax efficiencies.",
+                "Conduct a 'Legacy Family Meeting' to share your values and vision.",
+                "Consider setting up a Donor Advised Fund or charitable legacy plan."
+            ];
+        } else if (score >= 5) {
+            rating = "Review Required";
+            resultTitle.innerText = "Foundation Established";
+            colorClass = "review";
+            badgeClass = "bg-review";
+            actions = [
+                "Address the 'No' answers from this checklist within the next 30 days.",
+                "Consolidate your digital assets into a secure vault.",
+                "Review the funding of your trust or adequacy of your current Will."
+            ];
+        } else {
+            rating = "Critical/Risk";
+            resultTitle.innerText = "Urgent Action Needed";
+            colorClass = "critical";
+            badgeClass = "bg-critical";
+            actions = [
+                "Prioritize creating a legal Will and Power of Attorney immediately.",
+                "Define your beneficiaries on all financial accounts.",
+                "Book an emergency estate planning consultation."
+            ];
+        }
+
+        scoreCircle.className = `score-circle ${colorClass}`;
+        ratingBadge.innerText = rating;
+        ratingBadge.className = `rating-badge ${badgeClass}`;
+        
+        actionList.innerHTML = actions.map(a => `<li>${a}</li>`).join('');
+    }
+
+    function downloadCSV() {
+        let csvContent = "data:text/csv;charset=utf-8,";
+        csvContent += "ThryvIQ Estate Readiness Stress-Test Report\n";
+        csvContent += `Score: ${score}/10\n\n`;
+        csvContent += "Question,Response\n";
+        
+        answers.forEach(row => {
+            csvContent += `"${row.question}","${row.answer}"\n`;
+        });
+
+        const encodedUri = encodeURI(csvContent);
+        const link = document.createElement("a");
+        link.setAttribute("href", encodedUri);
+        link.setAttribute("download", "ThryvIQ_Readiness_Report.csv");
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+
+    initQuiz();
+</script>
+
+</body>
+</html>
