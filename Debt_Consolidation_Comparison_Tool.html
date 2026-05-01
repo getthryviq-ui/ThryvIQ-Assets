@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debt Consolidation Comparison Tool | ThryvIQ</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc;
+            color: #1e293b;
+        }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            transition: transform 0.2s ease;
+        }
+
+        .input-field {
+            width: 100%;
+            padding: 0.625rem;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 0.875rem;
+            transition: border-color 0.2s;
+        }
+
+        .input-field:focus {
+            outline: none;
+            border-color: #3b82f6;
+            ring: 2px solid #bfdbfe;
+        }
+
+        .btn-primary {
+            background-color: #2563eb;
+            color: white;
+            padding: 0.625rem 1.25rem;
+            border-radius: 8px;
+            font-weight: 500;
+            transition: background-color 0.2s;
+        }
+
+        .btn-primary:hover {
+            background-color: #1d4ed8;
+        }
+
+        .btn-secondary {
+            background-color: #f1f5f9;
+            color: #475569;
+            padding: 0.625rem 1.25rem;
+            border-radius: 8px;
+            font-weight: 500;
+            transition: background-color 0.2s;
+        }
+
+        .btn-secondary:hover {
+            background-color: #e2e8f0;
+        }
+
+        .summary-box {
+            background: #eff6ff;
+            border-left: 4px solid #3b82f6;
+        }
+
+        .remove-btn {
+            color: #ef4444;
+            transition: color 0.2s;
+        }
+
+        .remove-btn:hover {
+            color: #b91c1c;
+        }
+    </style>
+</head>
+<body class="p-4 md:p-8">
+    <div class="max-w-6xl mx-auto">
+        <!-- Header -->
+        <header class="mb-10 text-center">
+            <h1 class="text-3xl font-extrabold text-slate-900 tracking-tight mb-2">Debt Consolidation Comparison Tool</h1>
+            <p class="text-slate-500">Analyze your current liabilities and find the most efficient path to debt freedom.</p>
+        </header>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            
+            <!-- Left Column: Inputs -->
+            <div class="lg:col-span-8 space-y-8">
+                
+                <!-- Section 1: Current Debt Snapshot -->
+                <section class="card p-6">
+                    <div class="flex justify-between items-center mb-6">
+                        <h2 class="text-xl font-semibold text-slate-800">1. Current Debt Snapshot</h2>
+                        <button onclick="addDebtRow()" class="btn-secondary text-sm flex items-center gap-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z"/></svg>
+                            Add Debt
+                        </button>
+                    </div>
+
+                    <div class="overflow-x-auto mb-6">
+                        <table class="w-full text-left">
+                            <thead class="text-xs uppercase text-slate-400 font-semibold border-b border-slate-100">
+                                <tr>
+                                    <th class="pb-3 px-2">Creditor</th>
+                                    <th class="pb-3 px-2">Balance ($)</th>
+                                    <th class="pb-3 px-2">APR (%)</th>
+                                    <th class="pb-3 px-2">Min. Payment ($)</th>
+                                    <th class="pb-3 px-2 text-center w-10"></th>
+                                </tr>
+                            </thead>
+                            <tbody id="debt-rows">
+                                <!-- Row 1 -->
+                                <tr class="debt-row">
+                                    <td class="py-3 px-2"><input type="text" placeholder="e.g. Visa Card" class="input-field creditor" value="Credit Card A"></td>
+                                    <td class="py-3 px-2"><input type="number" step="0.01" class="input-field balance" value="5000" oninput="calculateResults()"></td>
+                                    <td class="py-3 px-2"><input type="number" step="0.01" class="input-field apr" value="22.9" oninput="calculateResults()"></td>
+                                    <td class="py-3 px-2"><input type="number" step="0.01" class="input-field payment" value="150" oninput="calculateResults()"></td>
+                                    <td class="py-3 px-2 text-center"></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Snapshot Results -->
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div class="summary-box p-4 rounded-lg">
+                            <span class="text-xs font-medium text-slate-500 uppercase">Total Debt</span>
+                            <div class="text-xl font-bold text-blue-700" id="stat-total-debt">$0.00</div>
+                        </div>
+                        <div class="summary-box p-4 rounded-lg">
+                            <span class="text-xs font-medium text-slate-500 uppercase">Avg. APR</span>
+                            <div class="text-xl font-bold text-blue-700" id="stat-avg-apr">0.0%</div>
+                        </div>
+                        <div class="summary-box p-4 rounded-lg">
+                            <span class="text-xs font-medium text-slate-500 uppercase">Total Interest</span>
+                            <div class="text-xl font-bold text-blue-700" id="stat-total-interest">$0.00</div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Section 2: Consolidation Options -->
+                <section class="card p-6">
+                    <div class="flex justify-between items-center mb-6">
+                        <h2 class="text-xl font-semibold text-slate-800">2. Consolidation Options</h2>
+                        <button onclick="addOptionRow()" class="btn-secondary text-sm flex items-center gap-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z"/></svg>
+                            Add Option
+                        </button>
+                    </div>
+
+                    <div id="option-container" class="space-y-6">
+                        <!-- Default Option -->
+                        <div class="option-row p-4 border border-slate-100 rounded-xl bg-slate-50 relative">
+                            <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
+                                <div>
+                                    <label class="block text-xs font-semibold text-slate-500 mb-1">Type</label>
+                                    <select class="input-field opt-type">
+                                        <option value="Personal Loan">Personal Loan</option>
+                                        <option value="Balance Transfer">Balance Transfer Card</option>
+                                        <option value="HELOC">HELOC</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-semibold text-slate-500 mb-1">New Rate (%)</label>
+                                    <input type="number" step="0.01" class="input-field opt-rate" value="10.5">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-semibold text-slate-500 mb-1">Term (Months)</label>
+                                    <input type="number" class="input-field opt-term" value="36">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-semibold text-slate-500 mb-1">Fees ($)</label>
+                                    <input type="number" class="input-field opt-fees" value="0">
+                                </div>
+                                <div class="flex items-end">
+                                    <button onclick="calculateResults()" class="btn-primary w-full text-sm">Compare</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+
+            <!-- Right Column: Results & Charts -->
+            <div class="lg:col-span-4 space-y-8">
+                <section class="card p-6 h-fit sticky top-8">
+                    <h2 class="text-xl font-semibold text-slate-800 mb-6">3. Comparison Result</h2>
+                    
+                    <div id="results-list" class="space-y-4">
+                        <!-- Current Baseline -->
+                        <div class="p-4 border-l-4 border-slate-300 bg-slate-50 rounded-r-lg">
+                            <div class="flex justify-between items-start mb-2">
+                                <span class="font-bold text-slate-700">As-Is Plan</span>
+                                <span class="text-xs bg-slate-200 px-2 py-0.5 rounded">Baseline</span>
+                            </div>
+                            <div class="grid grid-cols-2 gap-2 text-sm">
+                                <div class="text-slate-500">Monthly: <span class="text-slate-900 font-medium" id="res-curr-mo">$0</span></div>
+                                <div class="text-slate-500">Total Int: <span class="text-slate-900 font-medium" id="res-curr-int">$0</span></div>
+                                <div class="text-slate-500">Duration: <span class="text-slate-900 font-medium" id="res-curr-dur">0 mo</span></div>
+                            </div>
+                        </div>
+
+                        <!-- Dynamic Comparison Cards Inserted Here -->
+                        <div id="dynamic-results"></div>
+                    </div>
+
+                    <div class="mt-8">
+                        <canvas id="interestChart" height="250"></canvas>
+                    </div>
+                </section>
+            </div>
+        </div>
+
+        <footer class="mt-12 pt-6 border-t border-slate-200 text-center text-slate-400 text-sm">
+            <p>© 2024 ThryvIQ Platform. All calculations are estimates based on standard amortization formulas.</p>
+        </footer>
+    </div>
+
+    <script>
+        let interestChart = null;
+
+        function addDebtRow() {
+            const tbody = document.getElementById('debt-rows');
+            const tr = document.createElement('tr');
+            tr.className = 'debt-row';
+            tr.innerHTML = `
+                <td class="py-3 px-2"><input type="text" placeholder="e.g. Card" class="input-field creditor"></td>
+                <td class="py-3 px-2"><input type="number" step="0.01" class="input-field balance" oninput="calculateResults()"></td>
+                <td class="py-3 px-2"><input type="number" step="0.01" class="input-field apr" oninput="calculateResults()"></td>
+                <td class="py-3 px-2"><input type="number" step="0.01" class="input-field payment" oninput="calculateResults()"></td>
+                <td class="py-3 px-2 text-center">
+                    <button onclick="this.closest('tr').remove(); calculateResults();" class="remove-btn">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                    </button>
+                </td>
+            `;
+            tbody.appendChild(tr);
+        }
+
+        function addOptionRow() {
+            const container = document.getElementById('option-container');
+            const div = document.createElement('div');
+            div.className = 'option-row p-4 border border-slate-100 rounded-xl bg-slate-50 relative';
+            div.innerHTML = `
+                <button onclick="this.closest('.option-row').remove(); calculateResults();" class="absolute -top-2 -right-2 bg-white text-red-500 rounded-full shadow border border-slate-100 p-1">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                </button>
+                <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-500 mb-1">Type</label>
+                        <select class="input-field opt-type">
+                            <option value="Personal Loan">Personal Loan</option>
+                            <option value="Balance Transfer">Balance Transfer Card</option>
+                            <option value="HELOC">HELOC</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-500 mb-1">New Rate (%)</label>
+                        <input type="number" step="0.01" class="input-field opt-rate" placeholder="0.0">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-500 mb-1">Term (Months)</label>
+                        <input type="number" class="input-field opt-term" placeholder="Months">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-500 mb-1">Fees ($)</label>
+                        <input type="number" class="input-field opt-fees" value="0">
+                    </div>
+                    <div class="flex items-end">
+                        <button onclick="calculateResults()" class="btn-primary w-full text-sm">Compare</button>
+                    </div>
+                </div>
+            `;
+            container.appendChild(div);
+        }
+
+        function formatCurrency(val) {
+            return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(val);
+        }
+
+        function calculateAmortization(principal, annualRate, monthlyPayment) {
+            if (principal <= 0) return { totalInterest: 0, months: 0 };
+            
+            let balance = principal;
+            let rate = (annualRate / 100) / 12;
+            let totalInterest = 0;
+            let months = 0;
+            const MAX_MONTHS = 360; // 30 year limit safety
+
+            while (balance > 0 && months < MAX_MONTHS) {
+                let interest = balance * rate;
+                if (monthlyPayment <= interest) {
+                    // Infinite debt scenario (payment doesn't cover interest)
+                    return { totalInterest: 999999, months: 999, infinite: true };
+                }
+                let principalPaid = monthlyPayment - interest;
+                totalInterest += interest;
+                balance -= principalPaid;
+                months++;
+            }
+
+            return { totalInterest, months, infinite: months >= MAX_MONTHS };
+        }
+
+        function calculateResults() {
+            const debtRows = document.querySelectorAll('.debt-row');
+            let totalBalance = 0;
+            let weightedRateSum = 0;
+            let totalMonthlyPayment = 0;
+            let totalInterestPaidAsIs = 0;
+            let maxMonthsAsIs = 0;
+
+            debtRows.forEach(row => {
+                const bal = parseFloat(row.querySelector('.balance').value) || 0;
+                const apr = parseFloat(row.querySelector('.apr').value) || 0;
+                const pay = parseFloat(row.querySelector('.payment').value) || 0;
+
+                totalBalance += bal;
+                weightedRateSum += (bal * apr);
+                totalMonthlyPayment += pay;
+
+                const am = calculateAmortization(bal, apr, pay);
+                totalInterestPaidAsIs += am.totalInterest;
+                maxMonthsAsIs = Math.max(maxMonthsAsIs, am.months);
+            });
+
+            const avgApr = totalBalance > 0 ? (weightedRateSum / totalBalance) : 0;
+
+            // Update UI Snapshot
+            document.getElementById('stat-total-debt').innerText = formatCurrency(totalBalance);
+            document.getElementById('stat-avg-apr').innerText = avgApr.toFixed(2) + '%';
+            document.getElementById('stat-total-interest').innerText = formatCurrency(totalInterestPaidAsIs);
+
+            document.getElementById('res-curr-mo').innerText = formatCurrency(totalMonthlyPayment);
+            document.getElementById('res-curr-int').innerText = formatCurrency(totalInterestPaidAsIs);
+            document.getElementById('res-curr-dur').innerText = maxMonthsAsIs + ' mo';
+
+            // Compare Consolidation Options
+            const optionRows = document.querySelectorAll('.option-row');
+            const dynamicResults = document.getElementById('dynamic-results');
+            dynamicResults.innerHTML = '';
+
+            const chartLabels = ['Current'];
+            const chartData = [totalInterestPaidAsIs];
+            const chartColors = ['#94a3b8'];
+
+            optionRows.forEach((row, idx) => {
+                const type = row.querySelector('.opt-type').value;
+                const rate = parseFloat(row.querySelector('.opt-rate').value) || 0;
+                const term = parseInt(row.querySelector('.opt-term').value) || 0;
+                const fees = parseFloat(row.querySelector('.opt-fees').value) || 0;
+
+                const principal = totalBalance + fees;
+                const monthlyRate = (rate / 100) / 12;
+                
+                let monthlyPayment = 0;
+                let totalInterest = 0;
+
+                if (rate > 0) {
+                    monthlyPayment = (principal * monthlyRate) / (1 - Math.pow(1 + monthlyRate, -term));
+                    totalInterest = (monthlyPayment * term) - principal;
+                } else {
+                    monthlyPayment = principal / term;
+                    totalInterest = 0;
+                }
+
+                const netSavings = totalInterestPaidAsIs - totalInterest - fees;
+                const isSaving = netSavings > 0;
+
+                // Update UI Dynamic Card
+                const card = document.createElement('div');
+                card.className = `p-4 border-l-4 rounded-r-lg mt-4 ${isSaving ? 'border-green-500 bg-green-50' : 'border-red-500 bg-red-50'}`;
+                card.innerHTML = `
+                    <div class="flex justify-between items-start mb-2">
+                        <span class="font-bold text-slate-800">${type} ${idx + 1}</span>
+                        <span class="text-xs font-bold px-2 py-0.5 rounded ${isSaving ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}">
+                            ${isSaving ? 'Save ' + formatCurrency(netSavings) : 'Costs ' + formatCurrency(Math.abs(netSavings)) + ' More'}
+                        </span>
+                    </div>
+                    <div class="grid grid-cols-2 gap-2 text-sm">
+                        <div class="text-slate-600">New Monthly: <span class="text-slate-900 font-medium">${formatCurrency(monthlyPayment)}</span></div>
+                        <div class="text-slate-600">Total Interest: <span class="text-slate-900 font-medium">${formatCurrency(totalInterest)}</span></div>
+                        <div class="text-slate-600">Duration: <span class="text-slate-900 font-medium">${term} mo</span></div>
+                        <div class="text-slate-600">Fees: <span class="text-slate-900 font-medium">${formatCurrency(fees)}</span></div>
+                    </div>
+                `;
+                dynamicResults.appendChild(card);
+
+                chartLabels.push(`${type} ${idx+1}`);
+                chartData.push(totalInterest);
+                chartColors.push('#3b82f6');
+            });
+
+            updateChart(chartLabels, chartData, chartColors);
+        }
+
+        function updateChart(labels, data, colors) {
+            const ctx = document.getElementById('interestChart').getContext('2d');
+            
+            if (interestChart) {
+                interestChart.destroy();
+            }
+
+            interestChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Total Interest Paid ($)',
+                        data: data,
+                        backgroundColor: colors,
+                        borderRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: { display: false },
+                        title: {
+                            display: true,
+                            text: 'Total Interest Comparison',
+                            font: { size: 14, weight: '600' }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) { return '$' + value; }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Initialize on load
+        window.onload = function() {
+            calculateResults();
+        };
+    </script>
+</body>
+</html>
