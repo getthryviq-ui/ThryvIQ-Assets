@@ -3,204 +3,183 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ThryvIQ Zero-Based Budget</title>
+    <title>ThryvIQ Zero-Based Planner</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
-        body { font-family: 'Inter', sans-serif; }
-        .input-focus:focus { border-color: #059669; ring: 2px; ring-color: #10b981; }
-        input[type="number"]::-webkit-inner-spin-button,
-        input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+        
+        :root {
+            --thryv-navy: #0F172A;
+            --thryv-blue: #3B82F6;
+            --thryv-bg: #F8FAFC;
+        }
+
+        body { 
+            font-family: 'Plus Jakarta Sans', sans-serif; 
+            background-color: var(--thryv-bg);
+            color: var(--thryv-navy);
+        }
+
+        .thryv-card {
+            border-radius: 24px;
+            border: 1px solid rgba(226, 232, 240, 0.8);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #3B82F6 0%, #2563EB 100%);
+            transition: all 0.2s ease;
+        }
+
+        input::-webkit-outer-spin-button,
+        input::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        .zero-indicator {
+            transition: all 0.3s ease;
+        }
     </style>
 </head>
-<body class="bg-slate-50 min-h-screen pb-20">
+<body class="min-h-screen pb-12">
 
-    <!-- Header -->
-    <header class="bg-white border-b border-slate-200 py-6 mb-8 sticky top-0 z-10">
-        <div class="max-w-4xl mx-auto px-4 flex justify-between items-center">
-            <div>
-                <h1 class="text-2xl font-bold text-slate-900">
-                    ThryvIQ Zero-Based Planner
-                </h1>
-                <p class="text-sm text-slate-500">Give Every Dollar a Job — Goal: $0.00 Remaining</p>
+    <div id="controls" class="bg-white/80 backdrop-blur-md border-b border-slate-200 py-4 mb-8 sticky top-0 z-20 shadow-sm">
+        <div class="max-w-5xl mx-auto px-6 flex justify-between items-center">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center text-white font-bold text-xl shadow-lg shadow-blue-200">T</div>
+                <div>
+                    <h1 class="text-lg font-extrabold text-slate-900 tracking-tight">Zero-Based Planner</h1>
+                    <p class="text-[10px] uppercase font-bold tracking-widest text-blue-500">Every Dollar Has a Name</p>
+                </div>
             </div>
-            <button onclick="downloadCSV()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg font-medium transition-all flex items-center gap-2 shadow-sm">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <button onclick="downloadPDF()" class="btn-primary text-white px-6 py-2.5 rounded-xl font-bold flex items-center gap-2 shadow-lg active:scale-95">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                 </svg>
-                Export to Sheets
+                Export PDF
             </button>
         </div>
-    </header>
+    </div>
 
-    <main class="max-w-4xl mx-auto px-4 space-y-6">
+    <div id="planner-content" class="max-w-5xl mx-auto bg-white shadow-[0_32px_64px_-15px_rgba(0,0,0,0.05)] p-10 md:p-16 thryv-card">
         
-        <!-- Summary Floating Bar -->
-        <div class="bg-slate-900 text-white p-6 rounded-2xl shadow-xl flex flex-wrap justify-around items-center gap-4 border border-slate-800">
-            <div class="text-center">
-                <p class="text-xs uppercase tracking-widest text-slate-400 mb-1">Total Income</p>
-                <p id="summary-income" class="text-2xl font-bold">$0.00</p>
+        <div class="flex justify-between items-center border-b-2 border-slate-100 pb-8 mb-10">
+            <div>
+                <h2 class="text-4xl font-extrabold tracking-tighter text-slate-900 mb-1">ThryvIQ<span class="text-blue-600">.</span></h2>
+                <span class="px-2 py-0.5 bg-blue-50 text-blue-600 text-[10px] font-black uppercase tracking-widest rounded-md">Zero-Based Allocation</span>
             </div>
-            <div class="text-2xl text-slate-700 hidden md:block">−</div>
-            <div class="text-center">
-                <p class="text-xs uppercase tracking-widest text-slate-400 mb-1">Total Expenses</p>
-                <p id="summary-expenses" class="text-2xl font-bold">$0.00</p>
-            </div>
-            <div class="text-2xl text-slate-700 hidden md:block">=</div>
-            <div class="text-center bg-white/10 px-6 py-2 rounded-xl border border-white/10">
-                <p class="text-xs uppercase tracking-widest text-slate-400 mb-1">Left to Budget</p>
-                <p id="summary-remaining" class="text-2xl font-bold text-emerald-400">$0.00</p>
+            <div class="bg-slate-900 p-6 rounded-2xl text-white min-w-[240px]">
+                <p class="text-[10px] font-black text-white/50 uppercase tracking-widest mb-1">Left to Allocate</p>
+                <div id="remaining-balance" class="text-3xl font-black">$0.00</div>
+                <p id="status-msg" class="text-[10px] mt-2 font-bold text-blue-400 italic">Enter your monthly income to start</p>
             </div>
         </div>
 
-        <!-- Income Section -->
-        <section class="bg-white p-6 rounded-xl border border-slate-200">
-            <h2 class="text-lg font-bold text-slate-800 mb-4 border-b pb-2">Step 1: Monthly Income</h2>
-            <div class="space-y-3">
-                <div class="flex items-center gap-4">
-                    <input type="text" value="Main Paycheck" class="flex-1 text-sm font-medium text-slate-600 bg-transparent border-none">
-                    <input type="number" class="income-input w-32 p-2 bg-slate-50 border border-slate-200 rounded text-right" oninput="calculate()" placeholder="0.00">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <!-- Monthly Income Section -->
+            <div class="md:col-span-1 space-y-6">
+                <div class="bg-blue-50 p-6 rounded-[2rem] border border-blue-100">
+                    <h3 class="text-sm font-black text-blue-900 uppercase tracking-widest mb-4">1. Total Income</h3>
+                    <div class="relative">
+                        <span class="absolute left-4 top-1/2 -translate-y-1/2 font-bold text-blue-400">$</span>
+                        <input type="number" id="total-income" oninput="calculateZeroBased()" class="w-full bg-white border border-blue-200 rounded-xl py-4 pl-8 pr-4 font-bold text-xl text-blue-900 focus:ring-4 focus:ring-blue-100 outline-none" placeholder="0.00">
+                    </div>
                 </div>
-                <div class="flex items-center gap-4">
-                    <input type="text" value="Side Hustles" class="flex-1 text-sm font-medium text-slate-600 bg-transparent border-none">
-                    <input type="number" class="income-input w-32 p-2 bg-slate-50 border border-slate-200 rounded text-right" oninput="calculate()" placeholder="0.00">
-                </div>
-            </div>
-        </section>
 
-        <!-- Category Grid -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <!-- Fixed Costs -->
-            <div class="bg-white rounded-xl border border-slate-200 overflow-hidden">
-                <h3 class="bg-slate-50 px-4 py-3 font-bold text-slate-700 border-b">Fixed Expenses</h3>
-                <div class="p-4 space-y-3" id="fixed-list">
-                    <div class="flex justify-between items-center gap-2">
-                        <span class="text-sm text-slate-600">Housing</span>
-                        <input type="number" class="expense-input w-28 p-2 border border-slate-200 rounded text-right" oninput="calculate()" placeholder="0">
-                    </div>
-                    <div class="flex justify-between items-center gap-2">
-                        <span class="text-sm text-slate-600">Utilities</span>
-                        <input type="number" class="expense-input w-28 p-2 border border-slate-200 rounded text-right" oninput="calculate()" placeholder="0">
-                    </div>
-                    <div class="flex justify-between items-center gap-2">
-                        <span class="text-sm text-slate-600">Insurance</span>
-                        <input type="number" class="expense-input w-28 p-2 border border-slate-200 rounded text-right" oninput="calculate()" placeholder="0">
-                    </div>
+                <div class="p-6">
+                    <h4 class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">The ThryvIQ Rule</h4>
+                    <p class="text-xs text-slate-500 leading-relaxed italic">
+                        "Your goal is to reach exactly $0.00. If you have money left over, move it to debt or savings. If you're negative, trim your 'wants'."
+                    </p>
                 </div>
             </div>
 
-            <!-- Variable Costs -->
-            <div class="bg-white rounded-xl border border-slate-200 overflow-hidden">
-                <h3 class="bg-slate-50 px-4 py-3 font-bold text-slate-700 border-b">Variable Expenses</h3>
-                <div class="p-4 space-y-3">
-                    <div class="flex justify-between items-center gap-2">
-                        <span class="text-sm text-slate-600">Groceries</span>
-                        <input type="number" class="expense-input w-28 p-2 border border-slate-200 rounded text-right" oninput="calculate()" placeholder="0">
-                    </div>
-                    <div class="flex justify-between items-center gap-2">
-                        <span class="text-sm text-slate-600">Gas/Transport</span>
-                        <input type="number" class="expense-input w-28 p-2 border border-slate-200 rounded text-right" oninput="calculate()" placeholder="0">
-                    </div>
-                    <div class="flex justify-between items-center gap-2">
-                        <span class="text-sm text-slate-600">Personal Care</span>
-                        <input type="number" class="expense-input w-28 p-2 border border-slate-200 rounded text-right" oninput="calculate()" placeholder="0">
-                    </div>
-                </div>
-            </div>
-
-            <!-- Debt Snowball (Accelerator) -->
-            <div class="bg-emerald-50 rounded-xl border border-emerald-200 overflow-hidden md:col-span-2">
-                <h3 class="bg-emerald-100 px-4 py-3 font-bold text-emerald-800 border-b flex items-center justify-between">
-                    <span>ThryvIQ Debt Accelerator</span>
-                    <span class="text-xs font-normal">Push remaining funds here!</span>
-                </h3>
-                <div class="p-4 grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div class="flex justify-between items-center gap-2 bg-white p-2 rounded border border-emerald-100">
-                        <span class="text-sm text-slate-600 font-medium font-semibold">Priority Debt Payment</span>
-                        <input type="number" class="expense-input w-28 p-2 border border-emerald-200 rounded text-right bg-emerald-50/30" oninput="calculate()" placeholder="0">
-                    </div>
-                    <div class="flex justify-between items-center gap-2 bg-white p-2 rounded border border-emerald-100">
-                        <span class="text-sm text-slate-600 font-medium font-semibold">Emergency Buffer</span>
-                        <input type="number" class="expense-input w-28 p-2 border border-emerald-200 rounded text-right bg-emerald-50/30" oninput="calculate()" placeholder="0">
+            <!-- Allocation Categories -->
+            <div class="md:col-span-2">
+                <div class="space-y-4">
+                    <h3 class="text-sm font-black text-slate-900 uppercase tracking-widest flex items-center gap-2">
+                        <span class="w-2 h-6 bg-blue-600 rounded-full"></span>
+                        2. Monthly Allocations
+                    </h3>
+                    
+                    <div class="overflow-hidden rounded-2xl border border-slate-100 shadow-sm">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="bg-slate-50 text-[10px] font-black uppercase tracking-widest text-slate-500">
+                                    <th class="py-4 px-6">Expense Category</th>
+                                    <th class="py-4 px-6 text-right w-48">Planned Amount</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-50">
+                                <script>
+                                    const categories = ["Giving", "Savings", "Housing", "Utilities", "Food", "Transportation", "Clothing", "Medical/Health", "Personal/Misc", "Debt Payments"];
+                                    categories.forEach(cat => {
+                                        document.write(`
+                                            <tr>
+                                                <td class="py-4 px-6 font-bold text-slate-700 text-sm">${cat}</td>
+                                                <td class="p-0">
+                                                    <div class="relative flex items-center">
+                                                        <span class="absolute left-6 text-slate-300 text-sm">$</span>
+                                                        <input type="number" oninput="calculateZeroBased()" class="allocation-input w-full h-14 pl-10 pr-6 text-sm text-right font-bold text-slate-900 bg-transparent focus:outline-none focus:bg-blue-50/50" placeholder="0.00">
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        `);
+                                    });
+                                </script>
+                            </tbody>
+                        </table>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Pro Tip -->
-        <div class="bg-blue-50 border-l-4 border-blue-500 p-4 rounded-r-xl">
-            <div class="flex items-center gap-3">
-                <div class="bg-blue-500 text-white rounded-full p-1">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                </div>
-                <h4 class="font-bold text-blue-900">ThryvIQ Advice</h4>
-            </div>
-            <p class="text-sm text-blue-800 mt-1">
-                If your "Left to Budget" is positive, you aren't done. Allocate that surplus to your smallest debt. If it's negative, you must cut variable expenses until you hit exactly zero.
-            </p>
+        <div class="mt-12 pt-8 border-t border-slate-100 text-center">
+            <p class="text-[9px] text-slate-400 font-bold uppercase tracking-[0.3em]">ThryvIQ Business Solutions • Precision Wealth Building</p>
         </div>
-
-    </main>
+    </div>
 
     <script>
-        function calculate() {
-            const incomeInputs = document.querySelectorAll('.income-input');
-            const expenseInputs = document.querySelectorAll('.expense-input');
-            
-            let totalIncome = 0;
-            incomeInputs.forEach(i => totalIncome += (parseFloat(i.value) || 0));
-            
-            let totalExpenses = 0;
-            expenseInputs.forEach(e => totalExpenses += (parseFloat(e.value) || 0));
-            
-            const remaining = totalIncome - totalExpenses;
+        function calculateZeroBased() {
+            const income = parseFloat(document.getElementById('total-income').value) || 0;
+            let allocated = 0;
+            document.querySelectorAll('.allocation-input').forEach(input => {
+                allocated += parseFloat(input.value) || 0;
+            });
 
-            document.getElementById('summary-income').innerText = formatCurrency(totalIncome);
-            document.getElementById('summary-expenses').innerText = formatCurrency(totalExpenses);
-            
-            const remainingEl = document.getElementById('summary-remaining');
-            remainingEl.innerText = formatCurrency(remaining);
-            
-            // Color logic for Zero-Based goal
-            if (remaining === 0 && totalIncome > 0) {
-                remainingEl.className = "text-2xl font-bold text-emerald-400 animate-pulse";
+            const remaining = income - allocated;
+            const remainingDisplay = document.getElementById('remaining-balance');
+            const statusMsg = document.getElementById('status-msg');
+
+            remainingDisplay.innerText = '$' + remaining.toLocaleString(undefined, {minimumFractionDigits: 2});
+
+            if (remaining === 0 && income > 0) {
+                remainingDisplay.className = "text-3xl font-black text-emerald-400";
+                statusMsg.innerText = "Perfect! You've reached a zero-based budget.";
+                statusMsg.className = "text-[10px] mt-2 font-bold text-emerald-400 italic";
             } else if (remaining < 0) {
-                remainingEl.className = "text-2xl font-bold text-red-400";
+                remainingDisplay.className = "text-3xl font-black text-red-400";
+                statusMsg.innerText = "You've over-allocated by " + Math.abs(remaining).toFixed(2);
+                statusMsg.className = "text-[10px] mt-2 font-bold text-red-400 italic";
             } else {
-                remainingEl.className = "text-2xl font-bold text-blue-400";
+                remainingDisplay.className = "text-3xl font-black text-white";
+                statusMsg.innerText = income > 0 ? "Keep allocating until you reach zero." : "Enter your monthly income to start";
+                statusMsg.className = "text-[10px] mt-2 font-bold text-blue-400 italic";
             }
         }
 
-        function formatCurrency(num) {
-            return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(num);
+        async function downloadPDF() {
+            const element = document.getElementById('planner-content');
+            const opt = {
+                margin: 0.3,
+                filename: 'thryviq-zero-based-planner.pdf',
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2 },
+                jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
+            };
+            html2pdf().set(opt).from(element).save();
         }
-
-        function downloadCSV() {
-            let csvContent = "data:text/csv;charset=utf-8,";
-            csvContent += "ThryvIQ Zero-Based Budget Export\r\n";
-            csvContent += "Type,Item,Amount\r\n";
-            
-            document.querySelectorAll('.income-input').forEach(i => {
-                const label = i.previousElementSibling.value || "Income Source";
-                csvContent += `Income,${label},${i.value || 0}\r\n`;
-            });
-
-            document.querySelectorAll('.expense-input').forEach(e => {
-                const label = e.previousElementSibling.innerText || "Expense";
-                csvContent += `Expense,${label},${e.value || 0}\r\n`;
-            });
-
-            const encodedUri = encodeURI(csvContent);
-            const link = document.createElement("a");
-            link.setAttribute("href", encodedUri);
-            link.setAttribute("download", "thryviq_zero_budget.csv");
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-        }
-
-        // Initialize
-        calculate();
     </script>
 </body>
-</html>0
+</html>
