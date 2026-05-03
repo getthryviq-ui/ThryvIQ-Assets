@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ThryvIQ Budget vs Actual</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+        
+        :root {
+            --thryv-navy: #0F172A;
+            --thryv-blue: #3B82F6;
+            --thryv-bg: #F8FAFC;
+        }
+
+        body { 
+            font-family: 'Plus Jakarta Sans', sans-serif; 
+            background-color: var(--thryv-bg);
+            color: var(--thryv-navy);
+        }
+
+        .thryv-card {
+            border-radius: 24px;
+            border: 1px solid rgba(226, 232, 240, 0.8);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #3B82F6 0%, #2563EB 100%);
+            transition: all 0.2s ease;
+        }
+
+        .variance-positive { color: #10B981; } /* Green for under budget */
+        .variance-negative { color: #EF4444; } /* Red for over budget */
+
+        input::-webkit-outer-spin-button,
+        input::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+    </style>
+</head>
+<body class="min-h-screen pb-12">
+
+    <!-- Control Panel -->
+    <div id="controls" class="bg-white/80 backdrop-blur-md border-b border-slate-200 py-4 mb-8 sticky top-0 z-20 shadow-sm">
+        <div class="max-w-5xl mx-auto px-6 flex justify-between items-center">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center text-white font-bold text-xl shadow-lg shadow-blue-200">T</div>
+                <div>
+                    <h1 class="text-lg font-extrabold text-slate-900 tracking-tight">Budget vs Actual</h1>
+                    <p class="text-[10px] uppercase font-bold tracking-widest text-blue-500">The ThryvIQ Reality Check</p>
+                </div>
+            </div>
+            <button onclick="downloadPDF()" class="btn-primary text-white px-6 py-2.5 rounded-xl font-bold flex items-center gap-2 shadow-lg active:scale-95">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                </svg>
+                Export PDF
+            </button>
+        </div>
+    </div>
+
+    <!-- Main Document -->
+    <div id="comparison-content" class="max-w-5xl mx-auto bg-white shadow-[0_32px_64px_-15px_rgba(0,0,0,0.05)] p-10 md:p-16 thryv-card">
+        
+        <div class="flex justify-between items-center border-b-2 border-slate-100 pb-8 mb-10">
+            <div>
+                <h2 class="text-4xl font-extrabold tracking-tighter text-slate-900 mb-1">ThryvIQ<span class="text-blue-600">.</span></h2>
+                <span class="px-2 py-0.5 bg-blue-50 text-blue-600 text-[10px] font-black uppercase tracking-widest rounded-md">Performance Review</span>
+            </div>
+            <div class="text-right">
+                <input type="text" class="bg-slate-50 border border-slate-200 rounded-lg px-3 py-1.5 text-sm font-bold text-blue-600 text-right focus:outline-none" placeholder="Enter Month/Year">
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 gap-8">
+            <!-- Summary Header -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="bg-slate-50 p-6 rounded-2xl border border-slate-100">
+                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Total Planned</p>
+                    <div class="text-2xl font-extrabold text-slate-900" id="total-planned-display">$0.00</div>
+                </div>
+                <div class="bg-slate-50 p-6 rounded-2xl border border-slate-100">
+                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Total Actual</p>
+                    <div class="text-2xl font-extrabold text-slate-900" id="total-actual-display">$0.00</div>
+                </div>
+                <div class="bg-slate-900 p-6 rounded-2xl shadow-xl">
+                    <p class="text-[10px] font-black text-white/50 uppercase tracking-widest mb-1">Net Variance</p>
+                    <div class="text-2xl font-extrabold text-white" id="net-variance-display">$0.00</div>
+                </div>
+            </div>
+
+            <!-- Comparison Table -->
+            <div class="overflow-hidden rounded-2xl border border-slate-100 shadow-sm mt-4">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-slate-900 text-[10px] font-black uppercase tracking-[0.15em] text-white/70">
+                            <th class="py-4 px-6">Category</th>
+                            <th class="py-4 px-6 text-right w-40">Planned ($)</th>
+                            <th class="py-4 px-6 text-right w-40">Actual ($)</th>
+                            <th class="py-4 px-6 text-right w-40">Variance ($)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="comparison-body" class="divide-y divide-slate-50">
+                        <!-- Common Categories -->
+                        <script>
+                            const categories = ["Housing/Rent", "Utilities", "Groceries", "Dining Out", "Transportation", "Insurance", "Health/Wellness", "Entertainment", "Debt Payments", "Savings/Investments", "Miscellaneous"];
+                            categories.forEach(cat => {
+                                document.write(`
+                                    <tr class="group hover:bg-blue-50/30 transition-colors">
+                                        <td class="py-4 px-6 font-bold text-slate-700 text-sm">${cat}</td>
+                                        <td class="p-0"><input type="number" oninput="updateRow(this)" class="planned-input w-full h-14 px-6 text-sm text-right font-medium bg-transparent focus:outline-none focus:bg-white" placeholder="0.00"></td>
+                                        <td class="p-0"><input type="number" oninput="updateRow(this)" class="actual-input w-full h-14 px-6 text-sm text-right font-medium bg-transparent focus:outline-none focus:bg-white" placeholder="0.00"></td>
+                                        <td class="py-4 px-6 text-sm text-right font-black variance-cell">0.00</td>
+                                    </tr>
+                                `);
+                            });
+                        </script>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Analytical Reflection -->
+        <div class="mt-12 p-8 bg-blue-50/50 rounded-[2rem] border border-blue-100">
+            <h3 class="text-sm font-black uppercase tracking-widest text-blue-900 mb-6">Strategic Review</h3>
+            <div class="space-y-6">
+                <div>
+                    <label class="text-[10px] font-black text-blue-400 uppercase tracking-widest block mb-2">Why did variances occur in red categories?</label>
+                    <textarea class="w-full bg-white border border-blue-100 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-blue-200 outline-none resize-none" rows="2" placeholder="Analyze the behavioral cause..."></textarea>
+                </div>
+                <div>
+                    <label class="text-[10px] font-black text-blue-400 uppercase tracking-widest block mb-2">Adjustments for next month</label>
+                    <textarea class="w-full bg-white border border-blue-100 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-blue-200 outline-none resize-none" rows="2" placeholder="How will you stay closer to the plan?"></textarea>
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-12 pt-8 border-t border-slate-100 text-center">
+            <p class="text-[9px] text-slate-400 font-bold uppercase tracking-[0.3em]">ThryvIQ Business Solutions • Precision Wealth Building</p>
+        </div>
+    </div>
+
+    <script>
+        function updateRow(input) {
+            const row = input.closest('tr');
+            const planned = parseFloat(row.querySelector('.planned-input').value) || 0;
+            const actual = parseFloat(row.querySelector('.actual-input').value) || 0;
+            const varianceCell = row.querySelector('.variance-cell');
+            
+            const variance = planned - actual; // Positive = Under budget (Good), Negative = Over budget (Bad)
+            
+            varianceCell.innerText = (variance >= 0 ? '+' : '') + variance.toFixed(2);
+            
+            if (variance < 0) {
+                varianceCell.classList.remove('variance-positive');
+                varianceCell.classList.add('variance-negative');
+            } else if (variance > 0) {
+                varianceCell.classList.remove('variance-negative');
+                varianceCell.classList.add('variance-positive');
+            } else {
+                varianceCell.classList.remove('variance-positive', 'variance-negative');
+            }
+
+            calculateTotals();
+        }
+
+        function calculateTotals() {
+            let totalPlanned = 0;
+            let totalActual = 0;
+
+            document.querySelectorAll('.planned-input').forEach(i => totalPlanned += parseFloat(i.value) || 0);
+            document.querySelectorAll('.actual-input').forEach(i => totalActual += parseFloat(i.value) || 0);
+
+            const netVariance = totalPlanned - totalActual;
+
+            document.getElementById('total-planned-display').innerText = '$' + totalPlanned.toLocaleString(undefined, {minimumFractionDigits: 2});
+            document.getElementById('total-actual-display').innerText = '$' + totalActual.toLocaleString(undefined, {minimumFractionDigits: 2});
+            document.getElementById('net-variance-display').innerText = (netVariance >= 0 ? '+' : '-') + '$' + Math.abs(netVariance).toLocaleString(undefined, {minimumFractionDigits: 2});
+            
+            const varDisplay = document.getElementById('net-variance-display');
+            if (netVariance < 0) varDisplay.style.color = '#FFAAAA';
+            else if (netVariance > 0) varDisplay.style.color = '#AAFFAA';
+            else varDisplay.style.color = 'white';
+        }
+
+        async function downloadPDF() {
+            const element = document.getElementById('comparison-content');
+            const downloadBtn = document.querySelector('button');
+            const originalText = downloadBtn.innerHTML;
+            
+            downloadBtn.disabled = true;
+            downloadBtn.innerHTML = "Generating PDF...";
+
+            const opt = {
+                margin: 0.3,
+                filename: 'thryviq-budget-vs-actual.pdf',
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2, useCORS: true },
+                jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
+            };
+
+            try {
+                await html2pdf().set(opt).from(element).save();
+            } finally {
+                downloadBtn.innerHTML = originalText;
+                downloadBtn.disabled = false;
+            }
+        }
+    </script>
+</body>
+</html>
