@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ThryvIQ Monthly Expense Tracker</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+        
+        :root {
+            --thryv-navy: #0F172A;
+            --thryv-blue: #3B82F6;
+            --thryv-accent: #60A5FA;
+            --thryv-bg: #F8FAFC;
+        }
+
+        body { 
+            font-family: 'Plus Jakarta Sans', sans-serif; 
+            background-color: var(--thryv-bg);
+            color: var(--thryv-navy);
+        }
+        
+        .dotted-line { border-bottom: 2px dotted #E2E8F0; }
+        
+        input::placeholder {
+            color: #94A3B8;
+            opacity: 0.6;
+        }
+
+        input::-webkit-outer-spin-button,
+        input::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        .thryv-card {
+            border-radius: 24px;
+            border: 1px solid rgba(226, 232, 240, 0.8);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #3B82F6 0%, #2563EB 100%);
+            transition: all 0.2s ease;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 10px 15px -3px rgba(59, 130, 246, 0.3);
+        }
+
+        /* Custom scrollbar for a cleaner look */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #CBD5E1; border-radius: 10px; }
+    </style>
+</head>
+<body class="min-h-screen pb-12">
+
+    <!-- Control Panel -->
+    <div id="controls" class="bg-white/80 backdrop-blur-md border-b border-slate-200 py-4 mb-8 sticky top-0 z-20 shadow-sm">
+        <div class="max-w-5xl mx-auto px-6 flex justify-between items-center">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center text-white font-bold text-xl shadow-lg shadow-blue-200">T</div>
+                <div>
+                    <h1 class="text-lg font-extrabold text-slate-900 tracking-tight">ThryvIQ Tracker</h1>
+                    <p class="text-[10px] uppercase font-bold tracking-widest text-blue-500">Master Your Cashflow</p>
+                </div>
+            </div>
+            <div class="flex gap-3">
+                <button onclick="downloadPDF()" class="btn-primary text-white px-6 py-2.5 rounded-xl font-bold flex items-center gap-2 shadow-lg active:scale-95">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                    </svg>
+                    Export PDF
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Document Container -->
+    <div id="tracker-content" class="max-w-5xl mx-auto bg-white shadow-[0_32px_64px_-15px_rgba(0,0,0,0.05)] min-h-[1056px] p-10 md:p-16 thryv-card">
+        
+        <!-- Document Header -->
+        <div class="flex justify-between items-center border-b-2 border-slate-100 pb-8 mb-10">
+            <div>
+                <h2 class="text-4xl font-extrabold tracking-tighter text-slate-900 mb-1">ThryvIQ<span class="text-blue-600">.</span></h2>
+                <div class="flex items-center gap-2">
+                    <span class="px-2 py-0.5 bg-blue-50 text-blue-600 text-[10px] font-black uppercase tracking-widest rounded-md">120-Day Journey</span>
+                </div>
+            </div>
+            <div class="text-right">
+                <p class="text-sm font-bold text-slate-400 uppercase tracking-widest mb-2">Live Expense Ledger</p>
+                <div class="flex gap-3 items-center justify-end">
+                    <span class="text-xs font-bold text-slate-900">Active Month:</span>
+                    <input type="text" class="bg-slate-50 border border-slate-200 rounded-lg px-3 py-1.5 text-sm font-bold text-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-100 transition-all w-36" placeholder="October 2024">
+                </div>
+            </div>
+        </div>
+
+        <!-- Daily Log Table -->
+        <div class="mb-12">
+            <div class="flex items-center justify-between mb-6">
+                <h3 class="text-sm font-extrabold uppercase tracking-widest text-slate-900 flex items-center gap-2">
+                    <span class="w-2 h-6 bg-blue-600 rounded-full"></span>
+                    Transaction Log
+                </h3>
+                <span class="text-[10px] font-bold text-slate-400 bg-slate-50 px-3 py-1 rounded-full">Tip: Mark your 'Needs' vs 'Wants' honestly</span>
+            </div>
+            
+            <div class="overflow-hidden rounded-2xl border border-slate-100 shadow-sm">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-slate-900 text-[10px] font-black uppercase tracking-[0.15em] text-white/70">
+                            <th class="py-4 px-4 w-24">Date</th>
+                            <th class="py-4 px-4">Merchant / Description</th>
+                            <th class="py-4 px-4 w-40">Category</th>
+                            <th class="py-4 px-4 w-24 text-center">Intent</th>
+                            <th class="py-4 px-4 w-36 text-right">Amount</th>
+                        </tr>
+                    </thead>
+                    <tbody id="log-body" class="divide-y divide-slate-50">
+                        <!-- Generating interactive rows -->
+                        <script>
+                            for(let i=0; i<20; i++) {
+                                document.write(`
+                                    <tr class="group hover:bg-blue-50/30 transition-colors">
+                                        <td class="p-0"><input type="text" placeholder="MM/DD" class="w-full h-11 px-4 text-sm bg-transparent focus:outline-none focus:bg-white font-medium"></td>
+                                        <td class="p-0"><input type="text" placeholder="Where did it go?" class="w-full h-11 px-4 text-sm bg-transparent focus:outline-none focus:bg-white"></td>
+                                        <td class="p-0"><input type="text" placeholder="e.g. Dining" class="w-full h-11 px-4 text-sm bg-transparent focus:outline-none focus:bg-white text-slate-500"></td>
+                                        <td class="p-0 text-center">
+                                            <select class="text-[10px] font-black text-slate-400 bg-transparent focus:outline-none cursor-pointer appearance-none text-center w-full h-11 uppercase tracking-tighter">
+                                                <option value="">Choose</option>
+                                                <option value="need" class="text-emerald-600 font-bold">NEED</option>
+                                                <option value="want" class="text-blue-600 font-bold">WANT</option>
+                                            </select>
+                                        </td>
+                                        <td class="p-0">
+                                            <div class="relative flex items-center">
+                                                <span class="absolute left-3 text-slate-300 text-xs">$</span>
+                                                <input type="number" step="0.01" oninput="calculateTotal()" placeholder="0.00" class="amount-input w-full h-11 pl-7 pr-4 text-sm text-right font-bold text-slate-900 bg-transparent focus:outline-none focus:bg-white">
+                                            </div>
+                                        </td>
+                                    </tr>
+                                `);
+                            }
+                        </script>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Summary & Insights -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-12">
+            <!-- Left Reflection -->
+            <div class="md:col-span-2 bg-slate-50/50 p-8 rounded-[2rem] border border-slate-100">
+                <h3 class="font-extrabold text-slate-900 mb-6 flex items-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-600" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
+                    </svg>
+                    Behavioral Review
+                </h3>
+                <div class="grid grid-cols-1 gap-6">
+                    <div>
+                        <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Key Trigger Point</p>
+                        <input type="text" class="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-blue-100 outline-none" placeholder="When did you spend outside the plan?">
+                    </div>
+                    <div>
+                        <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Weekly Breakthroughs</p>
+                        <textarea class="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-blue-100 outline-none resize-none" rows="3" placeholder="Identify your wins..."></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Total Card -->
+            <div class="bg-slate-900 p-8 rounded-[2rem] text-white flex flex-col justify-between shadow-xl shadow-slate-200 relative overflow-hidden">
+                <div class="absolute top-0 right-0 w-32 h-32 bg-blue-600/20 rounded-full -mr-16 -mt-16 blur-3xl"></div>
+                <div class="relative z-10">
+                    <div class="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center mb-4">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                        </svg>
+                    </div>
+                    <h3 class="font-bold text-white/60 text-xs uppercase tracking-widest mb-1">Total Spending</h3>
+                    <div class="text-4xl font-black tracking-tight">$<span id="grand-total">0.00</span></div>
+                </div>
+                
+                <div class="relative z-10 mt-8 pt-6 border-t border-white/10">
+                    <p class="text-[10px] leading-relaxed text-white/40 italic">
+                        "Your wealth is built on the decisions you make today. Keep Thryv-ing."
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="mt-16 pt-8 border-t border-slate-100 flex flex-col md:flex-row justify-between items-center gap-4">
+            <p class="text-[9px] text-slate-400 font-bold uppercase tracking-[0.3em]">ThryvIQ Business Solutions • Educational Resource</p>
+            <div class="flex gap-4 text-[9px] font-bold text-slate-300 uppercase">
+                <span>Awareness</span>
+                <span>•</span>
+                <span>Consistency</span>
+                <span>•</span>
+                <span>Growth</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function calculateTotal() {
+            const inputs = document.querySelectorAll('.amount-input');
+            let total = 0;
+            inputs.forEach(input => {
+                total += parseFloat(input.value) || 0;
+            });
+            document.getElementById('grand-total').innerText = total.toLocaleString('en-US', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            });
+        }
+
+        async function downloadPDF() {
+            const element = document.getElementById('tracker-content');
+            const downloadBtn = document.querySelector('button');
+            
+            const originalText = downloadBtn.innerHTML;
+            downloadBtn.innerHTML = `
+                <svg class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                Exporting...`;
+            downloadBtn.disabled = true;
+
+            const opt = {
+                margin:       [0.4, 0.4],
+                filename:     'thryviq-expense-tracker.pdf',
+                image:        { type: 'jpeg', quality: 0.98 },
+                html2canvas:  { scale: 2, useCORS: true, letterRendering: true, backgroundColor: '#ffffff' },
+                jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
+            };
+
+            try {
+                await html2pdf().set(opt).from(element).save();
+            } catch (err) {
+                console.error("PDF Generation Error:", err);
+            } finally {
+                downloadBtn.innerHTML = originalText;
+                downloadBtn.disabled = false;
+            }
+        }
+    </script>
+</body>
+</html>
