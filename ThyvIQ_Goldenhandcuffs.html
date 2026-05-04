@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ThryvIQ Autonomy Engine</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .slider { -webkit-appearance: none; height: 4px; border-radius: 5px; background: #e2e8f0; }
+        .slider::-webkit-slider-thumb { -webkit-appearance: none; width: 18px; height: 18px; border-radius: 50%; background: #2563eb; cursor: pointer; }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-900 pb-20">
+    <div id="app" class="max-w-6xl mx-auto p-4 md:p-8">
+        <!-- Header -->
+        <header class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+            <div>
+                <h1 class="text-3xl font-extrabold tracking-tight text-slate-900">
+                    ThryvIQ <span class="text-blue-600">Autonomy Engine</span>
+                </h1>
+                <p class="text-slate-500 text-xs font-bold uppercase tracking-widest mt-1">Financial Architecture for High-Earning Professionals</p>
+            </div>
+            <div class="flex bg-white rounded-xl p-1 shadow-sm border border-slate-200">
+                <button @click="activeTab = 'diagnostic'" :class="activeTab === 'diagnostic' ? 'bg-blue-600 text-white shadow-md' : 'text-slate-600'" class="px-6 py-2 rounded-lg text-sm font-medium transition-all">Trap Diagnostic</button>
+                <button @click="activeTab = 'calculator'" :class="activeTab === 'calculator' ? 'bg-blue-600 text-white shadow-md' : 'text-slate-600'" class="px-6 py-2 rounded-lg text-sm font-medium transition-all ml-1">Decision Calculator</button>
+            </div>
+        </header>
+
+        <!-- Tab 1: Diagnostic -->
+        <div v-if="activeTab === 'diagnostic'" class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            <div class="lg:col-span-7 space-y-6">
+                <section class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
+                    <h2 class="text-xl font-bold mb-6 flex items-center gap-2">💰 Financial Data</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div><label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Base Salary ($)</label><input type="number" v-model="diagnostic.baseSalary" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-2 outline-none focus:ring-2 focus:ring-blue-500"></div>
+                        <div><label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Annual Bonus + RSUs ($)</label><input type="number" v-model="diagnostic.deferredComp" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-2 outline-none focus:ring-2 focus:ring-blue-500"></div>
+                        <div><label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Monthly Fixed Expenses ($)</label><input type="number" v-model="diagnostic.monthlyExpenses" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-2 outline-none focus:ring-2 focus:ring-blue-500"></div>
+                        <div><label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Liquid Assets ($)</label><input type="number" v-model="diagnostic.liquidAssets" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-2 outline-none focus:ring-2 focus:ring-blue-500"></div>
+                    </div>
+                </section>
+                <section class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
+                    <h2 class="text-xl font-bold mb-6 flex items-center gap-2">🧠 Psychological Anchors</h2>
+                    <div class="space-y-6">
+                        <div v-for="key in ['psychologicalFear', 'identityTied', 'reluctanceToExit']" :key="key">
+                            <div class="flex justify-between mb-2">
+                                <label class="text-sm font-medium text-slate-700 capitalize">{{ key.replace(/([A-Z])/g, ' $1') }}</label>
+                                <span class="text-sm font-bold text-blue-600">{{ diagnostic[key] }}/10</span>
+                            </div>
+                            <input type="range" min="1" max="10" v-model="diagnostic[key]" class="slider w-full">
+                        </div>
+                    </div>
+                </section>
+            </div>
+
+            <div class="lg:col-span-5 space-y-6">
+                <div :class="scoreResult.tier.bg + ' ' + scoreResult.tier.border" class="p-8 rounded-3xl border-2 transition-all shadow-xl text-center">
+                    <h3 class="text-slate-500 font-bold uppercase tracking-widest text-xs mb-2">Handcuff Score</h3>
+                    <div :class="scoreResult.tier.color" class="text-7xl font-black mb-2">{{ Math.round(scoreResult.score) }}</div>
+                    <div :class="scoreResult.tier.color" class="inline-block px-4 py-1 rounded-full text-sm font-bold uppercase bg-white border border-slate-100 mb-6">
+                        {{ scoreResult.tier.label }}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab 2: Calculator -->
+        <div v-else class="space-y-8">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <div v-for="(offer, idx) in offers" :key="offer.id" class="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
+                    <div class="bg-slate-900 p-6 text-white flex justify-between items-center">
+                        <h3 class="text-lg font-bold">{{ offer.name }}</h3>
+                    </div>
+                    <div class="p-6 space-y-4">
+                        <div><label class="text-[10px] font-bold text-slate-400 uppercase">Base Pay</label><input type="number" v-model="offer.base" class="w-full border-b py-1 outline-none font-bold"></div>
+                        <div><label class="text-[10px] font-bold text-slate-400 uppercase">Equity Volatility / Burnout Risk</label><input type="range" min="1" max="10" v-model="offer.risk" class="slider w-full mt-2"></div>
+                        <div class="bg-blue-50 p-4 rounded-xl flex justify-between items-center">
+                            <span class="text-blue-900 font-bold text-xs uppercase">Freedom Adjusted Value:</span>
+                            <span class="font-black text-blue-600 text-xl">${{ Math.round(calculateFreedom(offer)/1000) }}k</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Strategic Intervention -->
+        <section class="bg-white rounded-3xl p-8 border border-slate-200 shadow-sm mt-12">
+            <h3 class="text-2xl font-bold mb-4">🛡️ Strategic Intervention</h3>
+            <div v-if="scoreResult.score > 60" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="bg-orange-50 border-l-4 border-orange-500 p-5 rounded-r-xl">
+                    <h5 class="font-bold text-orange-900 mb-1">⚡ The De-Escalation Protocol</h5>
+                    <p class="text-sm text-orange-800">Decouple identity from income. Research shows investing in non-employer networks lowers psychological exit barriers.</p>
+                </div>
+                <div class="bg-red-50 border-l-4 border-red-500 p-5 rounded-r-xl">
+                    <h5 class="font-bold text-red-900 mb-1">🎯 Rigidity Cap</h5>
+                    <p class="text-sm text-red-800">Aggressively shift fixed costs to variable costs to create operational breathing room.</p>
+                </div>
+            </div>
+            <div v-else class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="bg-green-50 border-l-4 border-green-500 p-5 rounded-r-xl">
+                    <h5 class="font-bold text-green-900 mb-1">🛡️ The Prevention Framework</h5>
+                    <p class="text-sm text-green-800">Execute Windfall Capture: Direct 100% of future bonuses to liquid index funds, not lifestyle.</p>
+                </div>
+                <div class="bg-blue-50 border-l-4 border-blue-500 p-5 rounded-r-xl">
+                    <h5 class="font-bold text-blue-900 mb-1">💼 Portable Capital</h5>
+                    <p class="text-sm text-blue-800">Build high-value skills and networks that exist entirely outside your current employer's firewall.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- NEW: Glossary section based on research -->
+        <section class="bg-slate-900 rounded-3xl p-8 text-slate-300 mt-12">
+            <h3 class="text-white text-xl font-bold mb-6 flex items-center gap-2">📖 Research Glossary & Terminology</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 text-sm leading-relaxed">
+                <div class="space-y-4">
+                    <div>
+                        <strong class="text-blue-400 block mb-1">Golden Handcuffs (Structural Trap)</strong>
+                        A state where professional optionality is systematically diminished by the alignment of deferred compensation (RSUs/Options) with expanding fixed lifestyle costs.
+                    </div>
+                    <div>
+                        <strong class="text-blue-400 block mb-1">Lifestyle Rigidity</strong>
+                        The percentage of base salary (excluding bonuses) consumed by non-negotiable fixed expenses. High rigidity creates a state of "Professional Captivity."
+                    </div>
+                    <div>
+                        <strong class="text-blue-400 block mb-1">Allostatic Load</strong>
+                        The physiological "wear and tear" on the body caused by chronic stress. In the research, this is used to quantify the physical cost of staying in a high-burnout role.
+                    </div>
+                </div>
+                <div class="space-y-4">
+                    <div>
+                        <strong class="text-blue-400 block mb-1">Portable Capital</strong>
+                        Assets, skills, and professional networks that remain fully functional and valuable regardless of your current employment status.
+                    </div>
+                    <div>
+                        <strong class="text-blue-400 block mb-1">Windfall Capture Strategy</strong>
+                        A prevention mechanism where 100% of any income exceeding base salary (bonuses, stock vests) is diverted to liquid autonomy-building assets.
+                    </div>
+                    <div>
+                        <strong class="text-blue-400 block mb-1">Freedom-Adjusted Compensation</strong>
+                        A valuation model that discounts total compensation based on risk, vesting delays, and the "burnout penalty" required to earn it.
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <footer class="mt-12 pt-8 border-t text-slate-400 text-xs text-center uppercase tracking-widest font-bold">
+            ThryvIQ Strategic Advisory • Diagnostic System v2.2
+        </footer>
+    </div>
+
+    <script>
+        const { createApp } = Vue
+        createApp({
+            data() {
+                return {
+                    activeTab: 'diagnostic',
+                    diagnostic: { baseSalary: 250000, deferredComp: 250000, monthlyExpenses: 14000, liquidAssets: 300000, psychologicalFear: 5, identityTied: 5, reluctanceToExit: 5 },
+                    offers: [
+                        { id: 1, name: 'Current Role', base: 250000, equity: 150000, risk: 8 },
+                        { id: 2, name: 'Alternative Path', base: 210000, equity: 50000, risk: 2 }
+                    ]
+                }
+            },
+            computed: {
+                scoreResult() {
+                    const d = this.diagnostic;
+                    const totalComp = Number(d.baseSalary) + Number(d.deferredComp);
+                    const defPct = (Number(d.deferredComp) / totalComp) * 100;
+                    const rigidity = (Number(d.monthlyExpenses) * 12 / Number(d.baseSalary)) * 100;
+                    const runway = Number(d.liquidAssets) / (Number(d.monthlyExpenses) * 12);
+                    
+                    let score = 0;
+                    if (defPct > 30) score += 25; else if (defPct > 10) score += 12.5;
+                    if (rigidity > 70) score += 25; else if (rigidity > 40) score += 15;
+                    if (runway < 2) score += 20; else if (runway < 5) score += 10;
+                    score += ((Number(d.psychologicalFear) + Number(d.identityTied) + Number(d.reluctanceToExit)) / 30) * 30;
+
+                    const tiers = [
+                        { min: 0, label: "თავისუფალი (Low)", color: "text-green-500", bg: "bg-green-50", border: "border-green-200" },
+                        { min: 31, label: "Vulnerable", color: "text-yellow-500", bg: "bg-yellow-50", border: "border-yellow-200" },
+                        { min: 61, label: "Highly Constrained", color: "text-orange-500", bg: "bg-orange-50", border: "border-orange-200" },
+                        { min: 81, label: "Fully Handcuffed", color: "text-red-500", bg: "bg-red-50", border: "border-red-200" }
+                    ];
+                    return { score: Math.min(score, 100), tier: [...tiers].reverse().find(t => score >= t.min) };
+                }
+            },
+            methods: {
+                calculateFreedom(o) {
+                    return Number(o.base) + (Number(o.equity) * 0.5) - (Number(o.risk) * 12000);
+                }
+            }
+        }).mount('#app')
+    </script>
+</body>
+</html>
