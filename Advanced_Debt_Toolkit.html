@@ -1,0 +1,285 @@
+import React, { useState, useMemo, useEffect } from 'react';
+import { 
+  TrendingDown, 
+  Zap, 
+  BarChart3, 
+  Plus, 
+  Trash2, 
+  CheckCircle2, 
+  AlertCircle, 
+  ChevronRight,
+  Info,
+  Smartphone,
+  Layout
+} from 'lucide-react';
+
+const App = () => {
+  const [debts, setDebts] = useState([
+    { id: 1, name: 'Credit Card A', balance: 4500, interest: 24.9, minPayment: 135 },
+    { id: 2, name: 'Student Loan', balance: 12000, interest: 5.5, minPayment: 150 },
+    { id: 3, name: 'Personal Loan', balance: 2500, interest: 12.0, minPayment: 85 },
+  ]);
+
+  const [strategy, setStrategy] = useState('snowball'); // 'snowball' or 'avalanche'
+  const [monthlyBudget, setMonthlyBudget] = useState(1000);
+  const [isAdding, setIsAdding] = useState(false);
+  const [newDebt, setNewDebt] = useState({ name: '', balance: '', interest: '', minPayment: '' });
+
+  // Calculate sorted debts based on strategy
+  const sortedDebts = useMemo(() => {
+    return [...debts].sort((a, b) => {
+      if (strategy === 'snowball') {
+        return a.balance - b.balance; // Smallest to largest
+      } else {
+        return b.interest - a.interest; // Highest interest first
+      }
+    });
+  }, [debts, strategy]);
+
+  const totals = useMemo(() => {
+    const balance = debts.reduce((sum, d) => sum + Number(d.balance), 0);
+    const minPay = debts.reduce((sum, d) => sum + Number(d.minPayment), 0);
+    return { balance, minPay };
+  }, [debts]);
+
+  const handleAddDebt = (e) => {
+    e.preventDefault();
+    if (!newDebt.name || !newDebt.balance) return;
+    setDebts([...debts, { ...newDebt, id: Date.now() }]);
+    setNewDebt({ name: '', balance: '', interest: '', minPayment: '' });
+    setIsAdding(false);
+  };
+
+  const deleteDebt = (id) => {
+    setDebts(debts.filter(d => d.id !== id));
+  };
+
+  return (
+    <div className="min-h-screen bg-slate-50 text-slate-900 font-sans pb-20">
+      {/* Header */}
+      <header className="bg-white border-b border-slate-200 sticky top-0 z-10">
+        <div className="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <div className="bg-indigo-600 p-2 rounded-lg">
+              <TrendingDown className="text-white w-5 h-5" />
+            </div>
+            <h1 className="text-xl font-bold tracking-tight">ThryvIQ Debt Toolkit</h1>
+          </div>
+          <div className="flex gap-2">
+            <button className="text-xs bg-slate-100 hover:bg-slate-200 px-3 py-1.5 rounded-md font-medium transition-colors">
+              Duplicate to Notion
+            </button>
+          </div>
+        </div>
+      </header>
+
+      <main className="max-w-4xl mx-auto px-4 pt-8">
+        {/* Strategy Selector */}
+        <div className="mb-8 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+          <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
+            Choose Your Weapon
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <button 
+              onClick={() => setStrategy('snowball')}
+              className={`p-4 rounded-xl border-2 text-left transition-all ${strategy === 'snowball' ? 'border-indigo-600 bg-indigo-50/50' : 'border-slate-100 hover:border-slate-200'}`}
+            >
+              <div className="flex items-center justify-between mb-2">
+                <span className="font-bold flex items-center gap-2 uppercase text-xs tracking-wider">
+                  <Zap className="w-4 h-4 text-amber-500" /> Debt Snowball
+                </span>
+                {strategy === 'snowball' && <CheckCircle2 className="w-4 h-4 text-indigo-600" />}
+              </div>
+              <p className="text-sm text-slate-600">Focus on <span className="font-semibold text-slate-900">Motivation</span>. Pay smallest balances first for quick psychological wins.</p>
+            </button>
+
+            <button 
+              onClick={() => setStrategy('avalanche')}
+              className={`p-4 rounded-xl border-2 text-left transition-all ${strategy === 'avalanche' ? 'border-indigo-600 bg-indigo-50/50' : 'border-slate-100 hover:border-slate-200'}`}
+            >
+              <div className="flex items-center justify-between mb-2">
+                <span className="font-bold flex items-center gap-2 uppercase text-xs tracking-wider">
+                  <BarChart3 className="w-4 h-4 text-emerald-500" /> Debt Avalanche
+                </span>
+                {strategy === 'avalanche' && <CheckCircle2 className="w-4 h-4 text-indigo-600" />}
+              </div>
+              <p className="text-sm text-slate-600">Focus on <span className="font-semibold text-slate-900">Math</span>. Pay highest interest rates first to save the most money.</p>
+            </button>
+          </div>
+        </div>
+
+        {/* Overview Cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+          <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+            <p className="text-xs font-semibold text-slate-500 uppercase mb-1">Total Debt</p>
+            <p className="text-2xl font-bold text-slate-900">${totals.balance.toLocaleString()}</p>
+          </div>
+          <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+            <p className="text-xs font-semibold text-slate-500 uppercase mb-1">Total Min. Payments</p>
+            <p className="text-2xl font-bold text-slate-900">${totals.minPay.toLocaleString()}</p>
+          </div>
+          <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+            <p className="text-xs font-semibold text-slate-500 uppercase mb-1">Strategy Focus</p>
+            <p className="text-2xl font-bold text-indigo-600 capitalize">{strategy}</p>
+          </div>
+        </div>
+
+        {/* Ledger */}
+        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+          <div className="p-6 border-b border-slate-100 flex items-center justify-between">
+            <h2 className="font-bold text-lg">Master Debt Ledger</h2>
+            <button 
+              onClick={() => setIsAdding(!isAdding)}
+              className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 transition-colors"
+            >
+              <Plus className="w-4 h-4" /> Add Debt
+            </button>
+          </div>
+
+          {isAdding && (
+            <div className="p-6 bg-slate-50 border-b border-slate-100">
+              <form onSubmit={handleAddDebt} className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <input 
+                  placeholder="Debt Name"
+                  className="bg-white border border-slate-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
+                  value={newDebt.name}
+                  onChange={(e) => setNewDebt({...newDebt, name: e.target.value})}
+                  required
+                />
+                <input 
+                  type="number"
+                  placeholder="Balance ($)"
+                  className="bg-white border border-slate-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
+                  value={newDebt.balance}
+                  onChange={(e) => setNewDebt({...newDebt, balance: e.target.value})}
+                  required
+                />
+                <input 
+                  type="number"
+                  placeholder="Interest (%)"
+                  className="bg-white border border-slate-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
+                  value={newDebt.interest}
+                  onChange={(e) => setNewDebt({...newDebt, interest: e.target.value})}
+                  required
+                />
+                <div className="flex gap-2">
+                  <input 
+                    type="number"
+                    placeholder="Min Pay ($)"
+                    className="flex-1 bg-white border border-slate-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
+                    value={newDebt.minPayment}
+                    onChange={(e) => setNewDebt({...newDebt, minPayment: e.target.value})}
+                    required
+                  />
+                  <button type="submit" className="bg-slate-900 text-white px-4 py-2 rounded-lg text-sm">Save</button>
+                </div>
+              </form>
+            </div>
+          )}
+
+          <div className="overflow-x-auto">
+            <table className="w-full text-left">
+              <thead>
+                <tr className="bg-slate-50/50 text-xs font-bold text-slate-500 uppercase tracking-wider">
+                  <th className="px-6 py-4">Payoff Order</th>
+                  <th className="px-6 py-4">Account Name</th>
+                  <th className="px-6 py-4 text-right">Balance</th>
+                  <th className="px-6 py-4 text-right">Interest</th>
+                  <th className="px-6 py-4 text-right">Min Payment</th>
+                  <th className="px-6 py-4 text-center">Action</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {sortedDebts.map((debt, index) => (
+                  <tr key={debt.id} className={`group hover:bg-slate-50/50 transition-colors ${index === 0 ? 'bg-amber-50/30' : ''}`}>
+                    <td className="px-6 py-4">
+                      <div className="flex items-center gap-2">
+                        <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${index === 0 ? 'bg-amber-100 text-amber-700 ring-2 ring-amber-200' : 'bg-slate-100 text-slate-600'}`}>
+                          {index + 1}
+                        </span>
+                        {index === 0 && <span className="text-[10px] font-bold uppercase text-amber-600 bg-amber-100 px-1.5 py-0.5 rounded leading-none">Next Priority</span>}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 font-semibold text-slate-900">{debt.name}</td>
+                    <td className="px-6 py-4 text-right tabular-nums">${Number(debt.balance).toLocaleString()}</td>
+                    <td className="px-6 py-4 text-right tabular-nums">{debt.interest}%</td>
+                    <td className="px-6 py-4 text-right tabular-nums">${Number(debt.minPayment).toLocaleString()}</td>
+                    <td className="px-6 py-4 text-center">
+                      <button 
+                        onClick={() => deleteDebt(debt.id)}
+                        className="text-slate-400 hover:text-red-500 transition-colors p-1"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          {debts.length === 0 && (
+            <div className="p-12 text-center text-slate-400">
+              <AlertCircle className="w-12 h-12 mx-auto mb-3 opacity-20" />
+              <p>Your ledger is currently empty.</p>
+              <p className="text-sm">Click "Add Debt" to start your journey.</p>
+            </div>
+          )}
+        </div>
+
+        {/* Strategy Guide Info */}
+        <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="bg-slate-900 text-white p-6 rounded-2xl flex flex-col justify-between">
+            <div>
+              <Smartphone className="w-6 h-6 mb-4 text-indigo-400" />
+              <h3 className="font-bold text-lg mb-2">Mobile Ready</h3>
+              <p className="text-slate-400 text-sm leading-relaxed">This dashboard is optimized for on-the-go updates. Just like your Notion template, it scales perfectly to your phone.</p>
+            </div>
+          </div>
+          
+          <div className="bg-white border border-slate-200 p-6 rounded-2xl md:col-span-2">
+            <h3 className="font-bold text-lg mb-4 flex items-center gap-2">
+              <Info className="w-5 h-5 text-indigo-600" /> 
+              Pro Payoff Tips
+            </h3>
+            <div className="space-y-4">
+              <div className="flex gap-4">
+                <div className="w-8 h-8 rounded-lg bg-indigo-50 flex items-center justify-center shrink-0">
+                  <span className="text-indigo-600 font-bold text-sm">01</span>
+                </div>
+                <div>
+                  <p className="font-semibold text-sm">Always Pay Minimums</p>
+                  <p className="text-slate-500 text-xs">Ensure all debts except your top priority get their minimum payment to protect your credit score.</p>
+                </div>
+              </div>
+              <div className="flex gap-4">
+                <div className="w-8 h-8 rounded-lg bg-indigo-50 flex items-center justify-center shrink-0">
+                  <span className="text-indigo-600 font-bold text-sm">02</span>
+                </div>
+                <div>
+                  <p className="font-semibold text-sm">The "Snowball Effect"</p>
+                  <p className="text-slate-500 text-xs">Once a debt is paid off, add its entire payment amount to the next priority's payment.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+
+      {/* Footer / CTA */}
+      <footer className="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 py-3 px-4 z-20">
+        <div className="max-w-4xl mx-auto flex items-center justify-between">
+          <p className="text-xs text-slate-500 hidden sm:block">Part of the ThryvIQ Financial Freedom Suite</p>
+          <a 
+            href="#" 
+            className="flex items-center gap-2 text-indigo-600 hover:text-indigo-700 font-bold text-sm transition-all group"
+          >
+            🔗 Click Here to Access the Notion Template
+            <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+          </a>
+        </div>
+      </footer>
+    </div>
+  );
+};
+
+export default App;
