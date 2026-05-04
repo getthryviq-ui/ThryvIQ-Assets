@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ThryvIQ | Net Worth Tracker</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc;
+            color: #1e293b;
+        }
+        .thryv-gradient {
+            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+        }
+        .card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            transition: transform 0.2s ease;
+        }
+        .input-group:focus-within label {
+            color: #4f46e5;
+        }
+        input::-webkit-outer-spin-button,
+        input::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+    </style>
+</head>
+<body class="p-4 md:p-8">
+    <div class="max-w-4xl mx-auto">
+        <!-- Header -->
+        <header class="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
+            <div>
+                <h1 class="text-3xl font-bold tracking-tight text-slate-900">Thryv<span class="text-indigo-600">IQ</span></h1>
+                <p class="text-slate-500">Intelligent Net Worth Management</p>
+            </div>
+            <div class="flex gap-3">
+                <button onclick="exportData()" class="px-4 py-2 text-sm font-medium text-slate-600 bg-white border border-slate-200 rounded-lg hover:bg-slate-50">Export CSV</button>
+                <button onclick="resetApp()" class="px-4 py-2 text-sm font-medium text-red-600 bg-white border border-red-100 rounded-lg hover:bg-red-50">Reset All</button>
+            </div>
+        </header>
+
+        <!-- Stats Overview -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div class="card p-6 border-l-4 border-indigo-500">
+                <p class="text-sm font-medium text-slate-500 uppercase tracking-wider">Total Assets</p>
+                <h2 id="display-assets" class="text-2xl font-bold text-slate-900 mt-1">$0.00</h2>
+            </div>
+            <div class="card p-6 border-l-4 border-rose-500">
+                <p class="text-sm font-medium text-slate-500 uppercase tracking-wider">Total Liabilities</p>
+                <h2 id="display-liabilities" class="text-2xl font-bold text-slate-900 mt-1">$0.00</h2>
+            </div>
+            <div class="card p-6 thryv-gradient text-white">
+                <p class="text-sm font-medium opacity-80 uppercase tracking-wider">Net Worth</p>
+                <h2 id="display-networth" class="text-2xl font-bold mt-1">$0.00</h2>
+            </div>
+        </div>
+
+        <div class="space-y-8">
+            <!-- Input Sections -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <!-- Assets Section -->
+                <section>
+                    <div class="flex items-center gap-2 mb-4">
+                        <div class="p-2 bg-emerald-100 text-emerald-600 rounded-lg">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M4 4a2 2 0 00-2 2v4a2 2 0 002 2V6h10a2 2 0 00-2-2H4zm2 6a2 2 0 012-2h8a2 2 0 012 2v4a2 2 0 01-2 2H8a2 2 0 01-2-2v-4zm6 4a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd" /></svg>
+                        </div>
+                        <h3 class="text-xl font-semibold">Assets</h3>
+                    </div>
+                    <div class="card p-5 space-y-4">
+                        <div class="input-group">
+                            <label class="text-xs block mb-1 font-medium text-slate-600">Cash & Savings</label>
+                            <input type="number" data-category="asset" value="0" oninput="calculate()" class="w-full p-2 border border-slate-200 rounded-md focus:ring-2 focus:ring-indigo-500 outline-none">
+                        </div>
+                        <div class="input-group">
+                            <label class="text-xs block mb-1 font-medium text-slate-600">Investments</label>
+                            <input type="number" data-category="asset" value="0" oninput="calculate()" class="w-full p-2 border border-slate-200 rounded-md focus:ring-2 focus:ring-indigo-500 outline-none">
+                        </div>
+                        <div class="input-group">
+                            <label class="text-xs block mb-1 font-medium text-slate-600">Real Estate</label>
+                            <input type="number" data-category="asset" value="0" oninput="calculate()" class="w-full p-2 border border-slate-200 rounded-md focus:ring-2 focus:ring-indigo-500 outline-none">
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Liabilities Section -->
+                <section>
+                    <div class="flex items-center gap-2 mb-4">
+                        <div class="p-2 bg-rose-100 text-rose-600 rounded-lg">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M4 4a2 2 0 00-2 2v1h16V6a2 2 0 00-2-2H4z" /><path fill-rule="evenodd" d="M18 9H2v5a2 2 0 002 2h12a2 2 0 002-2V9zM4 13a1 1 0 011-1h1a1 1 0 110 2H5a1 1 0 01-1-1zm5-1a1 1 0 100 2h1a1 1 0 100-2H9z" clip-rule="evenodd" /></svg>
+                        </div>
+                        <h3 class="text-xl font-semibold">Liabilities</h3>
+                    </div>
+                    <div class="card p-5 space-y-4">
+                        <div class="input-group">
+                            <label class="text-xs block mb-1 font-medium text-slate-600">Credit Cards</label>
+                            <input type="number" data-category="liability" value="0" oninput="calculate()" class="w-full p-2 border border-slate-200 rounded-md focus:ring-2 focus:ring-indigo-500 outline-none text-rose-700">
+                        </div>
+                        <div class="input-group">
+                            <label class="text-xs block mb-1 font-medium text-slate-600">Mortgage</label>
+                            <input type="number" data-category="liability" value="0" oninput="calculate()" class="w-full p-2 border border-slate-200 rounded-md focus:ring-2 focus:ring-indigo-500 outline-none text-rose-700">
+                        </div>
+                        <div class="input-group">
+                            <label class="text-xs block mb-1 font-medium text-slate-600">Other Loans</label>
+                            <input type="number" data-category="liability" value="0" oninput="calculate()" class="w-full p-2 border border-slate-200 rounded-md focus:ring-2 focus:ring-indigo-500 outline-none text-rose-700">
+                        </div>
+                    </div>
+                </section>
+            </div>
+
+            <!-- Log Button -->
+            <div class="flex justify-center">
+                <button onclick="saveMonthlyRecord()" class="px-8 py-3 thryv-gradient text-white text-lg font-bold rounded-xl shadow-lg hover:scale-[1.02] active:scale-[0.98] transition-all">
+                    Log Current Net Worth
+                </button>
+            </div>
+
+            <!-- Monthly Log -->
+            <section>
+                <div class="flex items-center gap-2 mb-4">
+                    <h3 class="text-xl font-semibold">History</h3>
+                </div>
+                <div class="card overflow-hidden">
+                    <table class="w-full text-left">
+                        <thead class="bg-slate-50 border-b border-slate-100">
+                            <tr>
+                                <th class="px-6 py-3 text-xs font-bold text-slate-400 uppercase tracking-wider">Month</th>
+                                <th class="px-6 py-3 text-xs font-bold text-slate-400 uppercase tracking-wider">Net Worth</th>
+                                <th class="px-6 py-3 text-xs font-bold text-slate-400 uppercase tracking-wider">Trend</th>
+                                <th class="px-6 py-3 text-xs font-bold text-slate-400 uppercase tracking-wider text-right">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="history-body" class="divide-y divide-slate-100">
+                            <!-- Data rows injected here -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </div>
+    </div>
+
+    <!-- Feedback Toaster -->
+    <div id="toast" class="fixed bottom-8 left-1/2 transform -translate-x-1/2 bg-slate-900 text-white px-6 py-3 rounded-full text-sm font-medium opacity-0 transition-opacity duration-300 pointer-events-none z-50">
+        Data saved successfully.
+    </div>
+
+    <script>
+        let history = JSON.parse(localStorage.getItem('thryviq_history')) || [];
+
+        const formatter = new Intl.NumberFormat('en-US', {
+            style: 'currency',
+            currency: 'USD',
+        });
+
+        window.onload = () => {
+            calculate();
+            renderHistory();
+        };
+
+        function calculate() {
+            let assets = 0;
+            let liabilities = 0;
+
+            document.querySelectorAll('input[data-category="asset"]').forEach(input => {
+                assets += parseFloat(input.value) || 0;
+            });
+
+            document.querySelectorAll('input[data-category="liability"]').forEach(input => {
+                liabilities += parseFloat(input.value) || 0;
+            });
+
+            const netWorth = assets - liabilities;
+
+            document.getElementById('display-assets').innerText = formatter.format(assets);
+            document.getElementById('display-liabilities').innerText = formatter.format(liabilities);
+            document.getElementById('display-networth').innerText = formatter.format(netWorth);
+        }
+
+        function saveMonthlyRecord() {
+            let assets = 0;
+            let liabilities = 0;
+
+            document.querySelectorAll('input[data-category="asset"]').forEach(input => {
+                assets += parseFloat(input.value) || 0;
+            });
+
+            document.querySelectorAll('input[data-category="liability"]').forEach(input => {
+                liabilities += parseFloat(input.value) || 0;
+            });
+
+            const netWorth = assets - liabilities;
+            const date = new Date();
+            const label = date.toLocaleString('default', { month: 'short', year: 'numeric' });
+            
+            const index = history.findIndex(item => item.label === label);
+            if (index > -1) {
+                history[index].value = netWorth;
+            } else {
+                history.push({ label, value: netWorth, timestamp: Date.now() });
+            }
+
+            history.sort((a, b) => a.timestamp - b.timestamp);
+            localStorage.setItem('thryviq_history', JSON.stringify(history));
+            renderHistory();
+            showToast("Record logged for " + label);
+        }
+
+        function renderHistory() {
+            const tbody = document.getElementById('history-body');
+            tbody.innerHTML = '';
+
+            if (history.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="4" class="px-6 py-8 text-center text-slate-400 italic">No records yet. Enter your numbers above to start tracking.</td></tr>`;
+                return;
+            }
+
+            [...history].reverse().forEach((record, index) => {
+                // To find previous month relative to this record in sorted history
+                const currentIdx = history.findIndex(h => h.label === record.label);
+                const prevRecord = history[currentIdx - 1];
+                
+                let trendHtml = '-';
+                if (prevRecord) {
+                    const change = record.value - prevRecord.value;
+                    const changeClass = change >= 0 ? 'text-emerald-500' : 'text-rose-500';
+                    const trendIcon = change >= 0 ? '↑' : '↓';
+                    trendHtml = `<span class="${changeClass} font-medium">${trendIcon} ${formatter.format(Math.abs(change))}</span>`;
+                }
+
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td class="px-6 py-4 text-sm font-medium text-slate-700">${record.label}</td>
+                    <td class="px-6 py-4 text-sm font-bold text-slate-900">${formatter.format(record.value)}</td>
+                    <td class="px-6 py-4 text-sm">${trendHtml}</td>
+                    <td class="px-6 py-4 text-sm text-right">
+                        <button onclick="deleteRecord('${record.label}')" class="text-slate-300 hover:text-rose-500 transition-colors p-1">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" /></svg>
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        function deleteRecord(label) {
+            history = history.filter(h => h.label !== label);
+            localStorage.setItem('thryviq_history', JSON.stringify(history));
+            renderHistory();
+            showToast("Record removed");
+        }
+
+        function exportData() {
+            if (history.length === 0) return showToast("No data to export");
+            let csv = "Month,Net Worth\n";
+            history.forEach(row => {
+                csv += `"${row.label}",${row.value}\n`;
+            });
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.setAttribute('hidden', '');
+            a.setAttribute('href', url);
+            a.setAttribute('download', 'thryviq_net_worth.csv');
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+        }
+
+        function resetApp() {
+            if (confirm("Are you sure you want to clear all data? This cannot be undone.")) {
+                localStorage.removeItem('thryviq_history');
+                history = [];
+                document.querySelectorAll('input').forEach(i => i.value = 0);
+                calculate();
+                renderHistory();
+                showToast("All data reset");
+            }
+        }
+
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            toast.innerText = msg;
+            toast.style.opacity = '1';
+            setTimeout(() => {
+                toast.style.opacity = '0';
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
