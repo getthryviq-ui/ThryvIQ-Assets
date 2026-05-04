@@ -6,43 +6,32 @@
     <title>ThryvIQ Debt Toolkit</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- React and Babel -->
+    <!-- React and ReactDOM from CDNs (Universal Builds) -->
     <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-        body { font-family: 'Inter', sans-serif; }
+        body { 
+            font-family: 'Inter', sans-serif; 
+            -webkit-font-smoothing: antialiased;
+        }
+        /* Fix for potential layout shifts during icon loading */
+        i[data-lucide] {
+            display: inline-block;
+            width: 1.25rem;
+            height: 1.25rem;
+        }
     </style>
 </head>
 <body class="bg-slate-50 text-slate-900">
     <div id="root"></div>
 
-    <script type="text/babel">
-        const { useState, useMemo, useEffect } = React;
-
-        // Custom Icon Component to bridge Lucide to React
-        const Icon = ({ name, className = "" }) => {
-            const [svg, setSvg] = useState("");
-            
-            useEffect(() => {
-                const icon = lucide.icons[name];
-                if (icon) {
-                    const svgString = lucide.createIcons.icons[name];
-                    // Fallback to manual creation if createIcons is tricky in this env
-                    const element = document.createElement('div');
-                    const lucideIcon = lucide.createIcons({
-                        icons: { [name]: icon },
-                        attrs: { class: className }
-                    });
-                }
-            }, [name, className]);
-
-            // Simplified approach for a single-file build: use raw SVGs or Lucide's global
-            return <i data-lucide={name} className={className}></i>;
-        };
+    <script>
+        // Since we aren't using Babel (to avoid file:// protocol errors), 
+        // we use React.createElement (h) for the UI.
+        const { useState, useMemo, useEffect, createElement: h } = React;
 
         const App = () => {
             const [debts, setDebts] = useState([
@@ -55,17 +44,16 @@
             const [isAdding, setIsAdding] = useState(false);
             const [newDebt, setNewDebt] = useState({ name: '', balance: '', interest: '', minPayment: '' });
 
+            // Initialize icons whenever state changes that affects the DOM
             useEffect(() => {
-                lucide.createIcons();
+                if (window.lucide) {
+                    window.lucide.createIcons();
+                }
             }, [debts, strategy, isAdding]);
 
             const sortedDebts = useMemo(() => {
                 return [...debts].sort((a, b) => {
-                    if (strategy === 'snowball') {
-                        return a.balance - b.balance;
-                    } else {
-                        return b.interest - a.interest;
-                    }
+                    return strategy === 'snowball' ? a.balance - b.balance : b.interest - a.interest;
                 });
             }, [debts, strategy]);
 
@@ -90,207 +78,153 @@
             const downloadCSV = () => {
                 if (sortedDebts.length === 0) return;
                 const headers = ["Priority", "Account Name", "Balance", "Interest Rate (%)", "Minimum Payment"];
-                const rows = sortedDebts.map((debt, index) => [
-                    index + 1,
-                    debt.name,
-                    debt.balance,
-                    debt.interest,
-                    debt.minPayment
-                ]);
-
-                const csvContent = [
-                    [`Strategy: ${strategy.toUpperCase()}`],
-                    headers,
-                    ...rows,
-                    ["", "TOTALS", totals.balance, "", totals.minPay]
-                ].map(e => e.join(",")).join("\n");
-
+                const rows = sortedDebts.map((debt, index) => [index + 1, debt.name, debt.balance, debt.interest, debt.minPayment]);
+                const csvContent = [[`Strategy: ${strategy.toUpperCase()}`], headers, ...rows, ["", "TOTALS", totals.balance, "", totals.minPay]].map(e => e.join(",")).join("\n");
                 const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
                 const url = URL.createObjectURL(blob);
                 const link = document.createElement("a");
                 link.setAttribute("href", url);
                 link.setAttribute("download", `ThryvIQ_${strategy}_Strategy.csv`);
-                link.style.visibility = 'hidden';
                 document.body.appendChild(link);
                 link.click();
                 document.body.removeChild(link);
             };
 
-            return (
-                <div className="min-h-screen pb-20">
-                    <header className="bg-white border-b border-slate-200 sticky top-0 z-10">
-                        <div className="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
-                            <div className="flex items-center gap-2">
-                                <div className="bg-indigo-600 p-2 rounded-lg">
-                                    <i data-lucide="trending-down" className="text-white w-5 h-5"></i>
-                                </div>
-                                <h1 className="text-xl font-bold tracking-tight">ThryvIQ Debt Toolkit</h1>
-                            </div>
-                            <div className="hidden sm:flex items-center gap-2 text-slate-500 text-sm font-medium">
-                                <i data-lucide="wallet" className="w-4 h-4"></i> Personal Finance Dashboard
-                            </div>
-                        </div>
-                    </header>
+            return h('div', { className: 'min-h-screen pb-20' }, [
+                // Header
+                h('header', { key: 'header', className: 'bg-white border-b border-slate-200 sticky top-0 z-10' }, 
+                    h('div', { className: 'max-w-4xl mx-auto px-4 py-4 flex items-center justify-between' }, [
+                        h('div', { className: 'flex items-center gap-2' }, [
+                            h('div', { className: 'bg-indigo-600 p-2 rounded-lg' }, h('i', { 'data-lucide': 'trending-down', className: 'text-white w-5 h-5' })),
+                            h('h1', { className: 'text-xl font-bold tracking-tight' }, 'ThryvIQ Debt Toolkit')
+                        ]),
+                        h('div', { className: 'hidden sm:flex items-center gap-2 text-slate-500 text-sm font-medium' }, [
+                            h('i', { 'data-lucide': 'wallet', className: 'w-4 h-4' }),
+                            'Personal Finance Dashboard'
+                        ])
+                    ])
+                ),
 
-                    <main className="max-w-4xl mx-auto px-4 pt-8">
-                        <div className="mb-8 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
-                            <h2 className="text-lg font-semibold mb-4 text-slate-800">Choose Your Weapon</h2>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <button 
-                                    onClick={() => setStrategy('snowball')}
-                                    className={`p-5 rounded-xl border-2 text-left transition-all ${strategy === 'snowball' ? 'border-indigo-600 bg-indigo-50/50 ring-4 ring-indigo-500/10' : 'border-slate-100 bg-white hover:border-slate-200'}`}
-                                >
-                                    <div className="flex items-center justify-between mb-2">
-                                        <span className="font-bold flex items-center gap-2 uppercase text-xs tracking-wider">
-                                            <i data-lucide="zap" className="w-4 h-4 text-amber-500"></i> Debt Snowball
-                                        </span>
-                                        {strategy === 'snowball' && <i data-lucide="check-circle-2" className="w-5 h-5 text-indigo-600"></i>}
-                                    </div>
-                                    <p className="text-sm text-slate-600 leading-relaxed">Focus on <b>Motivation</b>. Pay smallest balances first for quick psychological wins.</p>
-                                </button>
+                // Main Content
+                h('main', { key: 'main', className: 'max-w-4xl mx-auto px-4 pt-8' }, [
+                    // Strategy Selector
+                    h('div', { className: 'mb-8 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm' }, [
+                        h('h2', { className: 'text-lg font-semibold mb-4 text-slate-800' }, 'Choose Your Weapon'),
+                        h('div', { className: 'grid grid-cols-1 md:grid-cols-2 gap-4' }, [
+                            // Snowball Button
+                            h('button', {
+                                onClick: () => setStrategy('snowball'),
+                                className: `p-5 rounded-xl border-2 text-left transition-all ${strategy === 'snowball' ? 'border-indigo-600 bg-indigo-50/50 ring-4 ring-indigo-500/10' : 'border-slate-100 bg-white hover:border-slate-200'}`
+                            }, [
+                                h('div', { className: 'flex items-center justify-between mb-2' }, [
+                                    h('span', { className: 'font-bold flex items-center gap-2 uppercase text-xs tracking-wider' }, [
+                                        h('i', { 'data-lucide': 'zap', className: 'w-4 h-4 text-amber-500' }), 'Debt Snowball'
+                                    ]),
+                                    strategy === 'snowball' && h('i', { 'data-lucide': 'check-circle-2', className: 'w-5 h-5 text-indigo-600' })
+                                ]),
+                                h('p', { className: 'text-sm text-slate-600 leading-relaxed' }, [
+                                    'Focus on ', h('b', null, 'Motivation'), '. Pay smallest balances first for quick psychological wins.'
+                                ])
+                            ]),
+                            // Avalanche Button
+                            h('button', {
+                                onClick: () => setStrategy('avalanche'),
+                                className: `p-5 rounded-xl border-2 text-left transition-all ${strategy === 'avalanche' ? 'border-indigo-600 bg-indigo-50/50 ring-4 ring-indigo-500/10' : 'border-slate-100 bg-white hover:border-slate-200'}`
+                            }, [
+                                h('div', { className: 'flex items-center justify-between mb-2' }, [
+                                    h('span', { className: 'font-bold flex items-center gap-2 uppercase text-xs tracking-wider' }, [
+                                        h('i', { 'data-lucide': 'bar-chart-3', className: 'w-4 h-4 text-emerald-500' }), 'Debt Avalanche'
+                                    ]),
+                                    strategy === 'avalanche' && h('i', { 'data-lucide': 'check-circle-2', className: 'w-5 h-5 text-indigo-600' })
+                                ]),
+                                h('p', { className: 'text-sm text-slate-600 leading-relaxed' }, [
+                                    'Focus on ', h('b', null, 'Math'), '. Pay highest interest rates first to minimize total interest paid.'
+                                ])
+                            ])
+                        ])
+                    ]),
 
-                                <button 
-                                    onClick={() => setStrategy('avalanche')}
-                                    className={`p-5 rounded-xl border-2 text-left transition-all ${strategy === 'avalanche' ? 'border-indigo-600 bg-indigo-50/50 ring-4 ring-indigo-500/10' : 'border-slate-100 bg-white hover:border-slate-200'}`}
-                                >
-                                    <div className="flex items-center justify-between mb-2">
-                                        <span className="font-bold flex items-center gap-2 uppercase text-xs tracking-wider">
-                                            <i data-lucide="bar-chart-3" className="w-4 h-4 text-emerald-500"></i> Debt Avalanche
-                                        </span>
-                                        {strategy === 'avalanche' && <i data-lucide="check-circle-2" className="w-5 h-5 text-indigo-600"></i>}
-                                    </div>
-                                    <p className="text-sm text-slate-600 leading-relaxed">Focus on <b>Math</b>. Pay highest interest rates first to minimize total interest paid.</p>
-                                </button>
-                            </div>
-                        </div>
+                    // Stats Grid
+                    h('div', { className: 'grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8' }, [
+                        { label: 'Total Debt', val: `$${totals.balance.toLocaleString()}` },
+                        { label: 'Monthly Payments', val: `$${totals.minPay.toLocaleString()}` },
+                        { label: 'Active Method', val: strategy, color: 'text-indigo-600 capitalize' }
+                    ].map((stat, i) => h('div', { key: i, className: 'bg-white p-5 rounded-2xl border border-slate-200 shadow-sm text-center sm:text-left' }, [
+                        h('p', { className: 'text-xs font-semibold text-slate-500 uppercase mb-1' }, stat.label),
+                        h('p', { className: `text-2xl font-bold ${stat.color || 'text-slate-900'}` }, stat.val)
+                    ]))),
 
-                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
-                            <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm text-center sm:text-left">
-                                <p className="text-xs font-semibold text-slate-500 uppercase mb-1">Total Debt</p>
-                                <p className="text-2xl font-bold text-slate-900">${totals.balance.toLocaleString()}</p>
-                            </div>
-                            <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm text-center sm:text-left">
-                                <p className="text-xs font-semibold text-slate-500 uppercase mb-1">Monthly Payments</p>
-                                <p className="text-2xl font-bold text-slate-900">${totals.minPay.toLocaleString()}</p>
-                            </div>
-                            <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm text-center sm:text-left">
-                                <p className="text-xs font-semibold text-slate-500 uppercase mb-1">Active Method</p>
-                                <p className="text-2xl font-bold text-indigo-600 capitalize">{strategy}</p>
-                            </div>
-                        </div>
+                    // Table
+                    h('div', { className: 'bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden mb-8' }, [
+                        h('div', { className: 'p-6 border-b border-slate-100 flex items-center justify-between' }, [
+                            h('h2', { className: 'font-bold text-lg' }, 'Debt Ledger'),
+                            h('div', { className: 'flex gap-2' }, [
+                                h('button', { onClick: downloadCSV, disabled: sortedDebts.length === 0, className: 'hidden sm:flex border border-slate-200 hover:bg-slate-50 text-slate-700 px-4 py-2 rounded-lg text-sm font-medium items-center gap-2 transition-colors disabled:opacity-50' }, [
+                                    h('i', { 'data-lucide': 'download', className: 'w-4 h-4' }), 'CSV'
+                                ]),
+                                h('button', { onClick: () => setIsAdding(!isAdding), className: 'bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2' }, [
+                                    h('i', { 'data-lucide': 'plus', className: 'w-4 h-4' }), 'Add'
+                                ])
+                            ])
+                        ]),
 
-                        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden mb-8">
-                            <div className="p-6 border-b border-slate-100 flex items-center justify-between">
-                                <h2 className="font-bold text-lg">Debt Ledger</h2>
-                                <div className="flex gap-2">
-                                    <button 
-                                        onClick={downloadCSV}
-                                        disabled={sortedDebts.length === 0}
-                                        className="hidden sm:flex border border-slate-200 hover:bg-slate-50 text-slate-700 px-4 py-2 rounded-lg text-sm font-medium items-center gap-2 transition-colors disabled:opacity-50"
-                                    >
-                                        <i data-lucide="download" className="w-4 h-4"></i> Download CSV
-                                    </button>
-                                    <button 
-                                        onClick={() => setIsAdding(!isAdding)}
-                                        className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2"
-                                    >
-                                        <i data-lucide="plus" className="w-4 h-4"></i> Add Debt
-                                    </button>
-                                </div>
-                            </div>
+                        isAdding && h('div', { className: 'p-6 bg-slate-50 border-b' }, h('form', { onSubmit: handleAddDebt, className: 'grid grid-cols-1 md:grid-cols-4 gap-4' }, [
+                            h('input', { placeholder: 'Name', className: 'bg-white border p-2 rounded text-sm', value: newDebt.name, onChange: e => setNewDebt({...newDebt, name: e.target.value}), required: true }),
+                            h('input', { type: 'number', placeholder: 'Balance', className: 'bg-white border p-2 rounded text-sm', value: newDebt.balance, onChange: e => setNewDebt({...newDebt, balance: e.target.value}), required: true }),
+                            h('input', { type: 'number', placeholder: 'Interest %', className: 'bg-white border p-2 rounded text-sm', value: newDebt.interest, onChange: e => setNewDebt({...newDebt, interest: e.target.value}), required: true }),
+                            h('div', { className: 'flex gap-2' }, [
+                                h('input', { type: 'number', placeholder: 'Min Pay', className: 'flex-1 bg-white border p-2 rounded text-sm', value: newDebt.minPayment, onChange: e => setNewDebt({...newDebt, minPayment: e.target.value}), required: true }),
+                                h('button', { type: 'submit', className: 'bg-slate-900 text-white px-4 py-2 rounded text-sm' }, 'Save')
+                            ])
+                        ])),
 
-                            {isAdding && (
-                                <div className="p-6 bg-slate-50 border-b border-slate-100">
-                                    <form onSubmit={handleAddDebt} className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                                        <input placeholder="Name" className="bg-white border p-2 rounded text-sm outline-none focus:ring-2 focus:ring-indigo-500" value={newDebt.name} onChange={(e) => setNewDebt({...newDebt, name: e.target.value})} required />
-                                        <input type="number" placeholder="Balance ($)" className="bg-white border p-2 rounded text-sm outline-none focus:ring-2 focus:ring-indigo-500" value={newDebt.balance} onChange={(e) => setNewDebt({...newDebt, balance: e.target.value})} required />
-                                        <input type="number" placeholder="Interest (%)" className="bg-white border p-2 rounded text-sm outline-none focus:ring-2 focus:ring-indigo-500" value={newDebt.interest} onChange={(e) => setNewDebt({...newDebt, interest: e.target.value})} required />
-                                        <div className="flex gap-2">
-                                            <input type="number" placeholder="Min Pay" className="flex-1 bg-white border p-2 rounded text-sm outline-none focus:ring-2 focus:ring-indigo-500" value={newDebt.minPayment} onChange={(e) => setNewDebt({...newDebt, minPayment: e.target.value})} required />
-                                            <button type="submit" className="bg-slate-900 text-white px-4 py-2 rounded text-sm">Save</button>
-                                        </div>
-                                    </form>
-                                </div>
-                            )}
+                        h('div', { className: 'overflow-x-auto' }, h('table', { className: 'w-full text-left' }, [
+                            h('thead', null, h('tr', { className: 'bg-slate-50 text-[11px] font-bold text-slate-500 uppercase tracking-widest border-b' }, 
+                                ['Priority', 'Account', 'Balance', 'Interest', 'Min Pay', 'Action'].map((hcell, i) => h('th', { key: i, className: `px-6 py-4 ${i > 1 && i < 5 ? 'text-right' : i === 5 ? 'text-center' : ''}` }, hcell))
+                            )),
+                            h('tbody', { className: 'divide-y divide-slate-100' }, sortedDebts.map((debt, idx) => h('tr', { key: debt.id, className: `hover:bg-slate-50 ${idx === 0 ? 'bg-amber-50/30' : ''}` }, [
+                                h('td', { className: 'px-6 py-4' }, h('div', { className: 'flex items-center gap-2' }, [
+                                    h('span', { className: `w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${idx === 0 ? 'bg-amber-100 text-amber-700 ring-2 ring-amber-200' : 'bg-slate-100 text-slate-600'}` }, idx + 1),
+                                    idx === 0 && h('span', { className: 'text-[10px] font-bold uppercase text-amber-600' }, 'Attack First')
+                                ])),
+                                h('td', { className: 'px-6 py-4 font-semibold text-slate-900' }, debt.name),
+                                h('td', { className: 'px-6 py-4 text-right tabular-nums' }, `$${Number(debt.balance).toLocaleString()}`),
+                                h('td', { className: 'px-6 py-4 text-right tabular-nums' }, `${debt.interest}%`),
+                                h('td', { className: 'px-6 py-4 text-right tabular-nums' }, `$${Number(debt.minPayment).toLocaleString()}`),
+                                h('td', { className: 'px-6 py-4 text-center' }, h('button', { onClick: () => deleteDebt(debt.id), className: 'text-slate-400 hover:text-red-500 p-2' }, h('i', { 'data-lucide': 'trash-2', className: 'w-4 h-4' })))
+                            ])))
+                        ]))
+                    ]),
 
-                            <div className="overflow-x-auto">
-                                <table className="w-full text-left">
-                                    <thead>
-                                        <tr className="bg-slate-50 text-[11px] font-bold text-slate-500 uppercase tracking-widest border-b">
-                                            <th className="px-6 py-4">Priority</th>
-                                            <th className="px-6 py-4">Account</th>
-                                            <th className="px-6 py-4 text-right">Balance</th>
-                                            <th className="px-6 py-4 text-right">Interest</th>
-                                            <th className="px-6 py-4 text-right">Min Pay</th>
-                                            <th className="px-6 py-4 text-center">Action</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody className="divide-y divide-slate-100">
-                                        {sortedDebts.map((debt, index) => (
-                                            <tr key={debt.id} className={`hover:bg-slate-50 ${index === 0 ? 'bg-amber-50/30' : ''}`}>
-                                                <td className="px-6 py-4">
-                                                    <div className="flex items-center gap-2">
-                                                        <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${index === 0 ? 'bg-amber-100 text-amber-700 ring-2 ring-amber-200' : 'bg-slate-100 text-slate-600'}`}>
-                                                            {index + 1}
-                                                        </span>
-                                                        {index === 0 && <span className="text-[10px] font-bold uppercase text-amber-600">Attack First</span>}
-                                                    </div>
-                                                </td>
-                                                <td className="px-6 py-4 font-semibold text-slate-900">{debt.name}</td>
-                                                <td className="px-6 py-4 text-right tabular-nums">${Number(debt.balance).toLocaleString()}</td>
-                                                <td className="px-6 py-4 text-right tabular-nums">{debt.interest}%</td>
-                                                <td className="px-6 py-4 text-right tabular-nums">${Number(debt.minPayment).toLocaleString()}</td>
-                                                <td className="px-6 py-4 text-center">
-                                                    <button onClick={() => deleteDebt(debt.id)} className="text-slate-400 hover:text-red-500 p-2">
-                                                        <i data-lucide="trash-2" className="w-4 h-4"></i>
-                                                    </button>
-                                                </td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
+                    // Footer Cards
+                    h('div', { className: 'grid grid-cols-1 md:grid-cols-3 gap-6' }, [
+                        h('div', { className: 'bg-slate-900 text-white p-6 rounded-2xl shadow-xl' }, [
+                            h('i', { 'data-lucide': 'smartphone', className: 'w-6 h-6 mb-4 text-indigo-400' }),
+                            h('h3', { className: 'font-bold text-lg mb-2' }, 'Sync Anywhere'),
+                            h('p', { className: 'text-slate-400 text-sm' }, 'This toolkit is built for flexibility. Use it as your primary dashboard to keep your financial goals in focus.')
+                        ]),
+                        h('div', { className: 'bg-white border border-slate-200 p-6 rounded-2xl md:col-span-2 shadow-sm' }, [
+                            h('h3', { className: 'font-bold text-lg mb-4 flex items-center gap-2' }, [
+                                h('i', { 'data-lucide': 'info', className: 'w-5 h-5 text-indigo-600' }), 'The Strategy Guide'
+                            ]),
+                            h('div', { className: 'space-y-4' }, [
+                                { t: 'Maintain Minimums', d: 'Keep paying minimums on all accounts to protect your credit. Only apply extra funds to your #1 priority.' },
+                                { t: 'Roll the Payments', d: 'When a debt is cleared, take its total payment amount and "roll" it into the next debt on your list.' }
+                            ].map((tip, i) => h('div', { key: i, className: 'flex gap-4' }, [
+                                h('div', { className: 'w-8 h-8 rounded-lg bg-indigo-50 flex items-center justify-center shrink-0' }, h('span', { className: 'text-indigo-600 font-bold text-sm' }, `0${i+1}`)),
+                                h('p', { className: 'text-slate-600 text-xs font-medium' }, [ h('span', { className: 'text-slate-900 block font-bold' }, tip.t), tip.d ])
+                            ])))
+                        ])
+                    ])
+                ]),
 
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                            <div className="bg-slate-900 text-white p-6 rounded-2xl flex flex-col justify-between shadow-xl shadow-slate-200">
-                                <div>
-                                    <i data-lucide="smartphone" className="w-6 h-6 mb-4 text-indigo-400"></i>
-                                    <h3 className="font-bold text-lg mb-2">Sync Anywhere</h3>
-                                    <p className="text-slate-400 text-sm leading-relaxed">This toolkit is built for flexibility. Use it as your primary dashboard to keep your financial goals in focus.</p>
-                                </div>
-                            </div>
-                            <div className="bg-white border border-slate-200 p-6 rounded-2xl md:col-span-2 shadow-sm">
-                                <h3 className="font-bold text-lg mb-4 flex items-center gap-2">
-                                    <i data-lucide="info" className="w-5 h-5 text-indigo-600"></i> The Strategy Guide
-                                </h3>
-                                <div className="space-y-4">
-                                    <div className="flex gap-4">
-                                        <div className="w-8 h-8 rounded-lg bg-indigo-50 flex items-center justify-center shrink-0">
-                                            <span className="text-indigo-600 font-bold text-sm">01</span>
-                                        </div>
-                                        <p className="text-slate-600 text-xs font-medium"><span className="text-slate-900 block font-bold">Maintain Minimums</span> Keep paying minimums on all accounts to protect your credit. Only apply extra funds to your #1 priority.</p>
-                                    </div>
-                                    <div className="flex gap-4">
-                                        <div className="w-8 h-8 rounded-lg bg-indigo-50 flex items-center justify-center shrink-0">
-                                            <span className="text-indigo-600 font-bold text-sm">02</span>
-                                        </div>
-                                        <p className="text-slate-600 text-xs font-medium"><span className="text-slate-900 block font-bold">Roll the Payments</span> When a debt is cleared, take its total payment amount and "roll" it into the next debt on your list.</p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </main>
-
-                    <footer className="py-8 px-4 text-center">
-                        <p className="text-xs text-slate-400 font-medium tracking-wide uppercase">ThryvIQ Financial Freedom Suite &copy; 2024</p>
-                    </footer>
-                </div>
-            );
+                // Footer
+                h('footer', { key: 'footer', className: 'py-8 px-4 text-center text-xs text-slate-400 font-medium tracking-wide uppercase' }, 'ThryvIQ Financial Freedom Suite © 2024')
+            ]);
         };
 
         const root = ReactDOM.createRoot(document.getElementById('root'));
-        root.render(<App />);
+        root.render(h(App));
     </script>
 </body>
 </html>
