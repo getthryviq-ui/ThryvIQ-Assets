@@ -1,0 +1,272 @@
+import React from 'react';
+import { 
+  ArrowDown, 
+  TrendingUp, 
+  Wallet, 
+  ShieldCheck, 
+  CreditCard, 
+  PieChart, 
+  BarChart3,
+  Zap,
+  ChevronRight,
+  Layers
+} from 'lucide-react';
+
+const App = () => {
+  const PremiumCard = ({ icon: Icon, title, subtitle, items, colorClass, formula }) => (
+    <div className="relative w-full max-w-md group">
+      {/* Subtle Blue Glow Effect */}
+      <div className="absolute -inset-0.5 rounded-2xl bg-blue-500 opacity-0 group-hover:opacity-10 transition duration-500 blur print:hidden"></div>
+      
+      <div className="relative flex flex-col bg-white border border-slate-200 rounded-2xl p-4 shadow-sm transition-all duration-300 group-hover:border-blue-200 group-hover:shadow-md print:shadow-none print:border-slate-300 print:p-3">
+        <div className="flex items-start justify-between mb-2 print:mb-1">
+          <div className="flex items-center gap-3">
+            <div className={`p-2.5 rounded-xl ${colorClass} text-white shadow-sm print:shadow-none print:p-2`}>
+              <Icon size={18} strokeWidth={2.5} />
+            </div>
+            <div>
+              <h3 className="font-extrabold text-slate-900 uppercase tracking-tight text-sm leading-none mb-1">{title}</h3>
+              <p className="text-[9px] text-blue-600 font-bold uppercase tracking-[0.15em]">{subtitle}</p>
+            </div>
+          </div>
+          <div className="h-1.5 w-1.5 rounded-full bg-slate-200 group-hover:bg-blue-400 transition-colors print:hidden"></div>
+        </div>
+        
+        <div>
+          {formula ? (
+            <div className="bg-slate-50 rounded-lg px-3 py-2 border border-slate-100 print:bg-white print:border-slate-200">
+              <p className="text-[10px] font-mono font-bold text-slate-700 flex items-center gap-2">
+                <span className="text-blue-500 opacity-50">CALC //</span> {formula}
+              </p>
+            </div>
+          ) : (
+            <div className="flex flex-wrap gap-1">
+              {items.split(', ').map((item, idx) => (
+                <span key={idx} className="text-[9px] font-bold px-1.5 py-0.5 bg-slate-100 text-slate-500 rounded border border-slate-200/50 uppercase tracking-tight print:bg-white print:border-slate-300">
+                  {item}
+                </span>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+
+  return (
+    <div className="min-h-screen bg-slate-50 text-slate-900 font-sans selection:bg-blue-100 selection:text-blue-900">
+      {/* Print-specific styles to force single page layout */}
+      <style dangerouslySetInnerHTML={{ __html: `
+        @media print {
+          body, html { 
+            height: 100%;
+            margin: 0 !important; 
+            padding: 0 !important; 
+            background: white !important;
+            -webkit-print-color-adjust: exact;
+          }
+          .no-print { display: none !important; }
+          .print-center { 
+            display: block !important; 
+            width: 100% !important; 
+            margin: 0 !important; 
+            padding: 0 !important;
+          }
+          .infographic-container { 
+            box-shadow: none !important; 
+            border: none !important; 
+            padding: 0.5cm !important; 
+            width: 100% !important; 
+            max-width: 100% !important;
+            height: auto;
+            page-break-inside: avoid;
+          }
+          @page { 
+            size: A4;
+            margin: 0; 
+          }
+        }
+      `}} />
+
+      {/* Navigation */}
+      <nav className="sticky top-0 z-50 bg-white border-b border-slate-200 px-6 py-4 shadow-sm no-print">
+        <div className="max-w-6xl mx-auto flex justify-between items-center">
+          <div className="flex items-center gap-3">
+            <div className="h-8 w-8 bg-slate-900 rounded-xl flex items-center justify-center">
+              <span className="text-blue-500 font-black text-lg italic">T</span>
+            </div>
+            <div>
+              <h1 className="text-lg font-extrabold tracking-tight text-slate-900">
+                ThryvIQ <span className="text-blue-600 font-black">Wealth OS</span>
+              </h1>
+            </div>
+          </div>
+        </div>
+      </nav>
+
+      <main className="max-w-6xl mx-auto p-6 md:p-8">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start print:block">
+          
+          {/* Content Column - Hidden on Print */}
+          <div className="lg:col-span-5 space-y-8 no-print">
+            <header>
+              <h2 className="text-3xl font-black text-slate-900 tracking-tight leading-tight mb-4">
+                Connected <br/><span className="text-blue-600 underline decoration-blue-200 underline-offset-4">Financial Flow.</span>
+              </h2>
+              <p className="text-sm text-slate-500 leading-relaxed font-medium italic border-l-2 border-blue-500 pl-4">
+                Wealth is built by improving the entire financial system.
+              </p>
+            </header>
+
+            <div className="space-y-6">
+              <section className="bg-white p-5 rounded-2xl shadow-sm border border-slate-200">
+                <h3 className="text-xs font-black text-slate-400 uppercase tracking-[0.2em] mb-3 flex items-center gap-2">
+                  <Layers size={14} className="text-blue-600" /> Operational Principles
+                </h3>
+                <div className="space-y-3 text-sm text-slate-600 leading-relaxed">
+                  <p>A <strong>disconnected system</strong> is the primary cause of friction. When budget, debt, and investments aren't synced, growth stops.</p>
+                </div>
+              </section>
+
+              <div className="space-y-2">
+                <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-2">Transformation Road</h3>
+                {[
+                  { label: "01 Stabilize", desc: "Build awareness." },
+                  { label: "02 Eliminate", desc: "Release debt." },
+                  { label: "03 Build", desc: "Hyper-growth." }
+                ].map((phase, i) => (
+                  <div key={i} className="flex items-center gap-3 p-3 rounded-xl border bg-white border-slate-100 transition-all group">
+                    <div className="h-7 w-7 rounded-lg flex items-center justify-center text-[10px] font-black bg-blue-600 text-white shadow-sm">
+                      {i + 1}
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-slate-900 text-xs tracking-tight">{phase.label}</h4>
+                      <p className="text-[10px] text-slate-500 font-medium">{phase.desc}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Infographic Column - Single Page Print Focus */}
+          <div className="lg:col-span-7 print-center">
+            <div 
+              className="bg-white p-8 md:p-12 rounded-3xl shadow-xl border border-slate-200 flex flex-col items-center relative overflow-hidden infographic-container"
+            >
+              {/* Branding Header */}
+              <div className="mb-8 text-center relative z-10 print:mb-6">
+                <h2 className="text-lg font-black text-slate-900 tracking-tighter uppercase mb-1">The ThryvIQ Wealth Operating System</h2>
+                <div className="flex items-center justify-center gap-2">
+                   <div className="h-px w-6 bg-blue-600"></div>
+                   <p className="text-[9px] font-bold tracking-widest text-blue-600 uppercase">Core Money Flow Model</p>
+                   <div className="h-px w-6 bg-blue-600"></div>
+                </div>
+              </div>
+
+              <div className="w-full flex flex-col items-center space-y-3 relative z-10 print:space-y-2">
+                <PremiumCard 
+                  icon={TrendingUp} 
+                  title="Income" 
+                  subtitle="Money Inflow" 
+                  items="Salary, Business, Side Income" 
+                  colorClass="bg-slate-900"
+                />
+                
+                <ArrowDown className="text-slate-200" size={20} />
+
+                <PremiumCard 
+                  icon={Wallet} 
+                  title="Budget" 
+                  subtitle="Money Direction System" 
+                  items="Giving every dollar a strategic job" 
+                  colorClass="bg-blue-600"
+                />
+
+                {/* Flow Split */}
+                <div className="w-full max-w-md relative py-4 print:py-2">
+                  <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 400 100" fill="none">
+                     <path d="M200 0 V15 C200 30 140 30 80 30 V100" stroke="#E2E8F0" strokeWidth="2" strokeLinecap="round" />
+                     <path d="M200 0 V15 C200 30 260 30 320 30 V100" stroke="#E2E8F0" strokeWidth="2" strokeLinecap="round" />
+                  </svg>
+
+                  <div className="flex justify-between gap-4 relative z-10 px-2">
+                    <div className="w-[48%] mt-12 print:mt-10">
+                      <div className="bg-white border border-slate-100 border-b-red-500 rounded-xl p-3 shadow-sm text-center print:border-slate-300 print:border-b-red-500 print:p-2">
+                        <CreditCard size={16} className="mx-auto text-red-500 mb-1" />
+                        <h4 className="text-[9px] font-extrabold uppercase text-slate-900">Debt</h4>
+                        <p className="text-[8px] text-slate-400 font-bold uppercase tracking-widest leading-none">Leakage</p>
+                      </div>
+                    </div>
+                    
+                    <div className="w-[48%] mt-12 print:mt-10">
+                      <div className="bg-white border border-slate-100 border-b-blue-500 rounded-xl p-3 shadow-sm text-center print:border-slate-300 print:border-b-blue-500 print:p-2">
+                        <ShieldCheck size={16} className="mx-auto text-blue-500 mb-1" />
+                        <h4 className="text-[9px] font-extrabold uppercase text-slate-900">Savings</h4>
+                        <p className="text-[8px] text-slate-400 font-bold uppercase tracking-widest leading-none">Stability</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Flow Merge */}
+                <div className="relative h-10 w-full flex justify-center print:h-8">
+                  <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 400 60" fill="none">
+                     <path d="M80 0 V10 C80 25 150 25 200 25 V60" stroke="#E2E8F0" strokeWidth="2" strokeLinecap="round" />
+                     <path d="M320 0 V10 C320 25 250 25 200 25 V60" stroke="#E2E8F0" strokeWidth="2" strokeLinecap="round" />
+                  </svg>
+                </div>
+
+                <PremiumCard 
+                  icon={PieChart} 
+                  title="Investments" 
+                  subtitle="Wealth Engine" 
+                  items="Retirement, Index Funds, Brokerage" 
+                  colorClass="bg-blue-700"
+                />
+                
+                <ArrowDown className="text-slate-200" size={20} />
+
+                <PremiumCard 
+                  icon={BarChart3} 
+                  title="Net Worth" 
+                  subtitle="The Scoreboard" 
+                  formula="TOTAL ASSETS – LIABILITIES" 
+                  colorClass="bg-slate-900"
+                />
+              </div>
+
+              {/* Asset Footer */}
+              <div className="mt-8 text-center pt-6 border-t border-slate-100 w-full print:mt-6 print:pt-4">
+                <p className="text-[9px] text-slate-400 font-bold leading-relaxed uppercase tracking-[0.2em] max-w-xs mx-auto">
+                  Improve the system, and behavior becomes inevitable.
+                </p>
+                <div className="mt-2 flex items-center justify-center gap-2">
+                   <span className="text-[10px] font-black text-slate-900 tracking-wider">GETTHRYVIQ.COM</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Strategic Tip - Hidden on Print */}
+            <div className="mt-6 p-4 bg-slate-900 rounded-2xl text-white no-print">
+              <div className="flex gap-3 items-start">
+                <div className="p-1.5 bg-blue-600 rounded-lg shrink-0">
+                  <Zap size={14} />
+                </div>
+                <p className="text-[11px] text-slate-400 leading-tight font-medium">
+                  <span className="text-blue-400 font-bold">Strategy:</span> Fix the component, not the symptom. Trace Net Worth stalls back to Cash Flow leakage.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+
+      <footer className="max-w-6xl mx-auto px-6 pb-8 mt-4 text-center no-print">
+        <p className="text-[9px] font-bold text-slate-300 uppercase tracking-widest">ThryvIQ Strategic Advisory • Internal Asset</p>
+      </footer>
+    </div>
+  );
+};
+
+export default App;
