@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; color: #231F20; max-width: 450px; margin: 20px auto; padding: 25px; border: 1px solid #e1e4e8; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+        .brand { color: #3D52FF; font-weight: 800; font-size: 1.4rem; margin-bottom: 10px; letter-spacing: 1px; }
+        h3 { margin-top: 0; color: #231F20; font-size: 1.1rem; }
+        .input-group { margin-bottom: 20px; }
+        label { display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 8px; color: #555; }
+        input { width: 100%; padding: 12px; border: 1px solid #d1d5da; border-radius: 6px; box-sizing: border-box; font-size: 1rem; transition: border 0.2s; }
+        input:focus { border-color: #3D52FF; outline: none; }
+        .result-box { background: #f4f6ff; padding: 20px; border-radius: 8px; border-left: 5px solid #3D52FF; margin-top: 25px; }
+        .result-label { font-size: 0.75rem; text-transform: uppercase; color: #3D52FF; font-weight: 700; letter-spacing: 1px; }
+        .result-value { font-size: 1.8rem; font-weight: bold; margin: 8px 0; color: #231F20; }
+        .buffer-note { font-size: 0.8rem; color: #666; font-style: italic; }
+        .disclaimer { font-size: 0.7rem; color: #888; margin-top: 20px; line-height: 1.4; border-top: 1px solid #eee; padding-top: 15px; }
+    </style>
+</head>
+<body>
+    <div class="brand">ThryvIQ</div>
+    <h3>Replacement Cost Estimator</h3>
+    
+    <div class="input-group">
+        <label>Estimated Total Square Footage</label>
+        <input type="number" id="sqft" placeholder="e.g. 2500" oninput="calculate()">
+    </div>
+    
+    <div class="input-group">
+        <label>Local Build Cost per Sq Ft ($)</label>
+        <input type="number" id="costPerSqFt" placeholder="Avg $150 - $300" oninput="calculate()">
+    </div>
+
+    <div class="result-box">
+        <div class="result-label">Recommended Dwelling Coverage</div>
+        <div class="result-value" id="totalCost">$0</div>
+        <div class="buffer-note">Includes a 20% buffer for inflation & debris removal.</div>
+    </div>
+
+    <p class="disclaimer"><strong>Educational Purpose Only:</strong> ThryvIQ provides this as a resource to help you understand the math of money. Construction costs fluctuate based on materials, labor, and local demand. Consult a licensed insurance professional for binding coverage amounts.</p>
+
+    <script>
+        function calculate() {
+            const sqft = document.getElementById('sqft').value;
+            const cost = document.getElementById('costPerSqFt').value;
+            if (sqft && cost) {
+                const base = sqft * cost;
+                const total = Math.round(base * 1.20); // 20% Buffer for modern safety
+                document.getElementById('totalCost').innerText = '$' + total.toLocaleString();
+            } else {
+                document.getElementById('totalCost').innerText = '$0';
+            }
+        }
+    </script>
+</body>
+</html>
