@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ThryvIQ | Risk Assessment Diagnostic</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f4f8;
+            background-image: radial-gradient(#d1d5db 0.5px, transparent 0.5px);
+            background-size: 24px 24px;
+        }
+        
+        .glass-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .thryviq-gradient {
+            background: linear-gradient(135deg, #1a2a6c 0%, #3D52FF 100%);
+        }
+
+        .option-card:hover .radio-circle {
+            border-color: #3D52FF;
+            background-color: #eff6ff;
+        }
+
+        .fade-in { animation: fadeIn 0.4s ease-out forwards; }
+        .slide-up { animation: slideUp 0.5s ease-out forwards; }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .step-transition {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-4 md:p-8">
+
+    <div id="app-container" class="w-full max-w-2xl glass-card rounded-3xl shadow-2xl overflow-hidden slide-up">
+        
+        <!-- Header Branding -->
+        <div class="thryviq-gradient p-6 md:p-8 text-white flex justify-between items-center">
+            <div>
+                <div class="flex items-center space-x-2 mb-1">
+                    <div class="w-8 h-8 bg-white rounded-lg flex items-center justify-center shadow-sm">
+                        <svg class="w-5 h-5 text-[#1a2a6c]" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zM8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zM14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z"></path>
+                        </svg>
+                    </div>
+                    <span class="text-xl font-bold tracking-tight">ThryvIQ</span>
+                </div>
+                <p class="text-blue-100 text-xs font-medium uppercase tracking-widest opacity-80">Wealth Intelligence Diagnostic</p>
+            </div>
+            <div id="status-badge" class="bg-white/10 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-tighter border border-white/20">
+                Live Assessment
+            </div>
+        </div>
+
+        <div class="p-8 md:p-12">
+            <div id="progress-section" class="mb-12">
+                <div class="flex justify-between items-end mb-4">
+                    <div>
+                        <h2 id="step-title" class="text-2xl font-bold text-slate-800">Initial Discovery</h2>
+                        <p id="step-subtitle" class="text-slate-400 text-sm">Let's define your strategic parameters.</p>
+                    </div>
+                    <div class="text-right">
+                        <span id="progress-counter" class="text-sm font-bold text-[#3D52FF]">01 / 05</span>
+                    </div>
+                </div>
+                <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+                    <div id="progress-fill" class="thryviq-gradient h-full transition-all duration-700 ease-in-out" style="width: 20%"></div>
+                </div>
+            </div>
+
+            <div id="quiz-view" class="fade-in">
+                <div id="question-container" class="space-y-6">
+                    <!-- Questions are dynamically injected here -->
+                </div>
+            </div>
+
+            <div id="result-view" class="hidden fade-in">
+                <div class="text-center mb-10">
+                    <div class="inline-flex items-center justify-center w-20 h-20 rounded-full bg-blue-50 text-[#3D52FF] mb-6 shadow-inner">
+                        <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                        </svg>
+                    </div>
+                    <p class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Assessment Complete</p>
+                    <h2 class="text-4xl font-black text-slate-800 mb-4" id="res-profile-title">Determining...</h2>
+                    <p class="text-slate-500 max-w-md mx-auto leading-relaxed" id="res-profile-desc"></p>
+                </div>
+
+                <div class="grid md:grid-cols-2 gap-4 mb-10">
+                    <div class="bg-slate-50 p-5 rounded-2xl border border-slate-100">
+                        <h4 class="text-[10px] font-bold text-slate-400 uppercase mb-3">Portfolio Outlook</h4>
+                        <p class="text-sm text-slate-700 leading-snug" id="res-outlook"></p>
+                    </div>
+                    <div class="bg-slate-50 p-5 rounded-2xl border border-slate-100">
+                        <h4 class="text-[10px] font-bold text-slate-400 uppercase mb-3">Core Strategy</h4>
+                        <p class="text-sm text-slate-700 leading-snug" id="res-strategy"></p>
+                    </div>
+                </div>
+
+                <div class="space-y-3">
+                    <button onclick="downloadAssessment()" class="w-full thryviq-gradient text-white font-bold py-4 rounded-xl shadow-xl shadow-blue-500/20 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center space-x-2">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+                        <span>Export Strategy PDF (TXT)</span>
+                    </button>
+                    <button onclick="resetAssessment()" class="w-full text-slate-400 font-bold py-3 text-xs uppercase tracking-widest hover:text-slate-600 transition-colors">
+                        Restart Diagnostic
+                    </button>
+                </div>
+            </div>
+
+            <!-- Footer Disclaimer -->
+            <div class="mt-12 pt-8 border-t border-slate-100">
+                <p class="text-[10px] text-slate-400 leading-relaxed text-center uppercase tracking-tighter">
+                    Educational Framework: ThryvIQ provides quantitative modeling insights. This does not constitute personalized investment advice. 
+                    Asset allocation should be validated by a Fiduciary Certified Financial Planner (CFP).
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const questions = [
+            {
+                id: 1,
+                title: "Investment Horizon",
+                subtitle: "Time is your most valuable asset.",
+                text: "What is your primary investment time horizon?",
+                options: [
+                    { label: "Tactical / Short-term", detail: "Less than 3 years. Capital preservation is priority.", score: 1 },
+                    { label: "Strategic / Medium-term", detail: "3 to 7 years. Seeking growth with defined exit.", score: 3 },
+                    { label: "Generational / Long-term", detail: "More than 7 years. Maximizing total returns.", score: 5 }
+                ]
+            },
+            {
+                id: 2,
+                title: "Volatility Resilience",
+                subtitle: "Psychology drives market outcomes.",
+                text: "If the stock market dropped 20% in one month, how would you likely respond?",
+                options: [
+                    { label: "Capital Protection", detail: "Exit positions immediately to prevent further loss.", score: 1 },
+                    { label: "Hold & Monitor", detail: "Wait for data-driven recovery before adjusting.", score: 3 },
+                    { label: "Opportunistic Entry", detail: "View volatility as a discounted buying opportunity.", score: 5 }
+                ]
+            },
+            {
+                id: 3,
+                title: "Primary Objective",
+                subtitle: "Your goal dictates the allocation.",
+                text: "Which best describes your primary financial objective?",
+                options: [
+                    { label: "Income & Stability", detail: "Current yield and low standard deviation.", score: 1 },
+                    { label: "Balanced Accumulation", detail: "Reasonable growth with mitigated risk.", score: 3 },
+                    { label: "Aggressive Expansion", detail: "High capital appreciation over multiple cycles.", score: 5 }
+                ]
+            },
+            {
+                id: 4,
+                title: "Liquidity Needs",
+                subtitle: "Cash flow requirements affect risk capacity.",
+                text: "How much do you rely on your portfolio for monthly living expenses?",
+                options: [
+                    { label: "Primary Source", detail: "Heavily reliant on regular distributions.", score: 1 },
+                    { label: "Secondary Source", detail: "Buffer for emergencies or major purchases.", score: 3 },
+                    { label: "Not Reliant", detail: "Expenses covered by independent income streams.", score: 5 }
+                ]
+            },
+            {
+                id: 5,
+                title: "Market Literacy",
+                subtitle: "Understanding risk reduces emotional bias.",
+                text: "How would you describe your knowledge of market volatility?",
+                options: [
+                    { label: "Risk Averse", detail: "Uncomfortable with price fluctuations.", score: 1 },
+                    { label: "Pragmatic", detail: "Understanding that cycles are part of investing.", score: 3 },
+                    { label: "Sophisticated", detail: "Utilizing volatility to capture long-term premiums.", score: 5 }
+                ]
+            }
+        ];
+
+        let currentIndex = 0;
+        let totalScore = 0;
+
+        function renderQuestion() {
+            const quizView = document.getElementById('quiz-view');
+            const q = questions[currentIndex];
+            
+            // Update Progress
+            const progress = ((currentIndex + 1) / questions.length) * 100;
+            document.getElementById('progress-fill').style.width = `${progress}%`;
+            document.getElementById('progress-counter').innerText = `0${currentIndex + 1} / 0${questions.length}`;
+            document.getElementById('step-title').innerText = q.title;
+            document.getElementById('step-subtitle').innerText = q.subtitle;
+
+            // Render content with smooth transition
+            quizView.classList.remove('fade-in');
+            void quizView.offsetWidth; // Trigger reflow
+            quizView.classList.add('fade-in');
+
+            const container = document.getElementById('question-container');
+            container.innerHTML = `
+                <h3 class="text-lg font-semibold text-slate-700 leading-tight mb-4">${q.text}</h3>
+                <div class="space-y-3">
+                    ${q.options.map((opt, idx) => `
+                        <button onclick="handleOptionClick(${opt.score})" 
+                                class="option-card w-full text-left p-5 rounded-2xl border border-slate-200 bg-white hover:border-[#3D52FF] hover:bg-blue-50/50 transition-all duration-200 group relative">
+                            <div class="flex items-start space-x-4">
+                                <div class="radio-circle mt-1 w-5 h-5 rounded-full border-2 border-slate-200 group-hover:border-[#3D52FF] transition-colors flex-shrink-0"></div>
+                                <div>
+                                    <span class="block font-bold text-slate-800 group-hover:text-[#3D52FF] transition-colors">${opt.label}</span>
+                                    <span class="block text-xs text-slate-400 font-medium mt-1 leading-relaxed">${opt.detail}</span>
+                                </div>
+                            </div>
+                        </button>
+                    `).join('')}
+                </div>
+            `;
+        }
+
+        function handleOptionClick(score) {
+            totalScore += score;
+            if (currentIndex < questions.length - 1) {
+                currentIndex++;
+                renderQuestion();
+            } else {
+                showFinalResults();
+            }
+        }
+
+        function showFinalResults() {
+            document.getElementById('progress-section').classList.add('hidden');
+            document.getElementById('quiz-view').classList.add('hidden');
+            document.getElementById('result-view').classList.remove('hidden');
+            document.getElementById('status-badge').innerText = "Report Generated";
+            document.getElementById('status-badge').classList.replace('bg-white/10', 'bg-green-500/20');
+
+            const titleEl = document.getElementById('res-profile-title');
+            const descEl = document.getElementById('res-profile-desc');
+            const outlookEl = document.getElementById('res-outlook');
+            const strategyEl = document.getElementById('res-strategy');
+
+            if (totalScore <= 8) {
+                titleEl.innerText = "Conservative";
+                descEl.innerText = "You prioritize capital safety above all else. Your strategy is designed to minimize 'drawdown' events while keeping liquidity high.";
+                outlookEl.innerText = "Expect stable, modest returns. Market dips will have minimal impact on your principal balance.";
+                strategyEl.innerText = "High weighting in fixed-income (Government Bonds), cash equivalents, and defensive indices.";
+            } else if (totalScore <= 18) {
+                titleEl.innerText = "Moderate Growth";
+                descEl.innerText = "You balance the need for wealth accumulation with a disciplined approach to risk management. You accept 'healthy' volatility.";
+                outlookEl.innerText = "Balanced performance. You participate in market rallies but maintain a buffer during corrections.";
+                strategyEl.innerText = "60/40 or 70/30 Equity-to-Bond ratio. Focus on Diversified ETFs and Blue-chip holdings.";
+            } else {
+                titleEl.innerText = "Aggressive Alpha";
+                descEl.innerText = "You have a high capacity for risk and a long-term vision. You view market volatility as a pricing mechanism for higher returns.";
+                outlookEl.innerText = "Significant growth potential. Portfolio will fluctuate heavily but aims for maximum compounding over time.";
+                strategyEl.innerText = "Heavy Equity tilt (90%+). Includes Growth sectors, Small-cap, and potentially International exposure.";
+            }
+        }
+
+        function downloadAssessment() {
+            const profile = document.getElementById('res-profile-title').innerText;
+            const desc = document.getElementById('res-profile-desc').innerText;
+            const outlook = document.getElementById('res-outlook').innerText;
+            const strategy = document.getElementById('res-strategy').innerText;
+            
+            const timestamp = new Date().toLocaleString();
+            
+            const reportContent = `
+=========================================
+THRYVIQ RISK ASSESSMENT REPORT
+Generated: ${timestamp}
+=========================================
+
+YOUR RISK PROFILE: ${profile}
+
+EXECUTIVE SUMMARY:
+${desc}
+
+PORTFOLIO OUTLOOK:
+${outlook}
+
+CORE STRATEGY RECOMMENDATION:
+${strategy}
+
+-----------------------------------------
+NEXT STEPS:
+1. Review "Index Fund Basics" for your specific allocation.
+2. Schedule a consultation with a Fiduciary CFP.
+3. Re-evaluate this diagnostic every 12-18 months.
+
+DISCLAIMER: This diagnostic tool is for educational modeling purposes.
+ThryvIQ does not provide personalized investment advice.
+=========================================
+            `;
+            
+            const blob = new Blob([reportContent], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `ThryvIQ_Strategy_${profile.replace(' ', '_')}.txt`;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function resetAssessment() {
+            currentIndex = 0;
+            totalScore = 0;
+            document.getElementById('progress-section').classList.remove('hidden');
+            document.getElementById('quiz-view').classList.remove('hidden');
+            document.getElementById('result-view').classList.add('hidden');
+            document.getElementById('status-badge').innerText = "Live Assessment";
+            document.getElementById('status-badge').classList.replace('bg-green-500/20', 'bg-white/10');
+            renderQuestion();
+        }
+
+        window.onload = renderQuestion;
+    </script>
+</body>
+</html>
