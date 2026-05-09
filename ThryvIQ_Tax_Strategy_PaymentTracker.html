@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ThryvIQ | Tax Strategy Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            /* Exact brand blue extracted from ThryvIQ Logo no tag.png */
+            --thryv-blue: #3F51FF;
+            --thryv-dark: #212121;
+            --thryv-slate: #64748b;
+            --thryv-bg: #fdfdfd;
+        }
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background-color: var(--thryv-bg); 
+            color: var(--thryv-dark); 
+        }
+        h1, h2, h3, .brand-font { font-family: 'Outfit', sans-serif; }
+        
+        .thryv-card { 
+            background: white; 
+            border: 1px solid #eef2f6; 
+            border-radius: 16px; 
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .thryv-card:hover { 
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.05);
+            transform: translateY(-2px);
+        }
+
+        /* Logic for the IQ branding overline seen in the logo */
+        .iq-overline {
+            border-top: 3.5px solid var(--thryv-blue);
+            padding-top: 2px;
+            display: inline-block;
+        }
+
+        .input-field { 
+            border: 1.5px solid #e2e8f0; 
+            border-radius: 10px; 
+            padding: 10px 14px; 
+            font-size: 0.875rem; 
+            width: 100%; 
+            transition: all 0.2s; 
+        }
+        .input-field:focus { 
+            outline: none; 
+            border-color: var(--thryv-blue); 
+            box-shadow: 0 0 0 4px rgba(63, 81, 255, 0.1);
+        }
+
+        .tab-active { 
+            color: var(--thryv-blue); 
+            border-bottom: 3px solid var(--thryv-blue);
+            font-weight: 700;
+        }
+        
+        .btn-primary { 
+            background: var(--thryv-blue); 
+            color: white; 
+            padding: 12px 24px; 
+            border-radius: 12px; 
+            font-weight: 600; 
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            border: none;
+            cursor: pointer;
+        }
+        .btn-primary:hover { 
+            opacity: 0.9;
+            transform: scale(1.02);
+        }
+
+        .btn-secondary {
+            border: 1.5px solid #e2e8f0;
+            color: var(--thryv-dark);
+            padding: 10px 20px;
+            border-radius: 10px;
+            font-weight: 500;
+            transition: all 0.2s;
+            background: white;
+            cursor: pointer;
+        }
+        .btn-secondary:hover {
+            border-color: var(--thryv-blue);
+            color: var(--thryv-blue);
+            background: rgba(63, 81, 255, 0.03);
+        }
+
+        .insight-box {
+            background: #f8faff;
+            border-left: 4px solid var(--thryv-blue);
+            padding: 1.5rem;
+            border-radius: 0 12px 12px 0;
+        }
+
+        /* Custom scrollbar for brand feel */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+</head>
+<body class="min-h-screen pb-20">
+
+    <header class="bg-white border-b border-gray-100 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 md:px-8 py-4 flex flex-col md:flex-row md:items-center justify-between gap-6">
+            <div class="flex items-center">
+                <!-- Using provided file name verbatim as the src -->
+                <img src="ThryvIQ Logo no tag.png" alt="ThryvIQ" class="h-10 md:h-12 w-auto object-contain" onerror="this.style.display='none'; document.getElementById('fallback-logo').classList.remove('hidden')">
+                
+                <!-- Fallback text branding if the image file isn't present in the local directory -->
+                <div id="fallback-logo" class="hidden flex items-center">
+                    <span class="text-2xl font-bold tracking-tight text-[#212121]">Thryv<span class="iq-overline">IQ</span></span>
+                </div>
+            </div>
+            
+            <nav class="flex gap-2 md:gap-6 overflow-x-auto no-scrollbar">
+                <button onclick="switchTab('tracker')" id="tab-tracker" class="pb-2 px-3 transition-all tab-active text-xs uppercase font-bold tracking-wider">Payments</button>
+                <button onclick="switchTab('calculator')" id="tab-calculator" class="pb-2 px-3 transition-all text-slate-400 text-xs uppercase font-bold tracking-wider">Estimator</button>
+                <button onclick="switchTab('strategy')" id="tab-strategy" class="pb-2 px-3 transition-all text-slate-400 text-xs uppercase font-bold tracking-wider">Strategy Tree</button>
+                <button onclick="switchTab('resources')" id="tab-resources" class="pb-2 px-3 transition-all text-slate-400 text-xs uppercase font-bold tracking-wider">Resources</button>
+            </nav>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-4 md:px-8 py-10">
+        
+        <section id="view-tracker" class="tab-view">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+                <div>
+                    <h2 class="text-3xl font-bold mb-2">Quarterly Payment Tracker</h2>
+                    <p class="text-slate-500 text-sm">Supplementing your Notion dashboard for real-time tracking.</p>
+                </div>
+                <div class="flex gap-3">
+                    <button onclick="saveData()" class="btn-primary" id="save-btn">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"></path></svg>
+                        Save Data
+                    </button>
+                </div>
+            </div>
+
+            <div class="thryv-card overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left">
+                        <thead class="bg-slate-50/50 border-b border-slate-100">
+                            <tr>
+                                <th class="p-5 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Quarter</th>
+                                <th class="p-5 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Period Covered</th>
+                                <th class="p-5 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-blue-600">Due Date</th>
+                                <th class="p-5 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Estimated ($)</th>
+                                <th class="p-5 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-center">Paid?</th>
+                                <th class="p-5 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Confirmation #</th>
+                                <th class="p-5 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Notes</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tracker-body" class="divide-y divide-slate-50">
+                            <!-- Injected by JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="mt-6 flex items-center gap-2 text-xs text-slate-400 italic">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                💡 Pro Tip: Set calendar reminders 1 week before each due date.
+            </div>
+        </section>
+
+        <section id="view-calculator" class="tab-view hidden">
+            <div class="max-w-4xl mx-auto">
+                <div class="text-center mb-12">
+                    <h2 class="text-4xl font-bold mb-4">Safe Harbor Estimator</h2>
+                    <p class="text-slate-500 max-w-2xl mx-auto">Method 1 (Safest): Avoid underpayment penalties using your prior year tax liability.</p>
+                </div>
+                
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    <div class="lg:col-span-2 thryv-card p-10">
+                        <div class="mb-10">
+                            <label class="block text-sm font-bold text-slate-600 mb-3">Total Tax Owed Last Year (Form 1040)</label>
+                            <div class="relative">
+                                <span class="absolute left-4 top-4 text-slate-400 font-bold">$</span>
+                                <input type="number" id="prior-tax" class="input-field pl-10 text-xl font-bold" placeholder="0.00" oninput="calculateSafeHarbor()">
+                            </div>
+                        </div>
+
+                        <div class="mb-10">
+                            <label class="block text-sm font-bold text-slate-600 mb-3">Adjusted Gross Income (AGI) Bracket</label>
+                            <div class="grid grid-cols-2 gap-4 p-1.5 bg-slate-100 rounded-xl">
+                                <button onclick="setAgi('under')" id="btn-agi-under" class="py-3 text-sm font-bold rounded-lg transition-all bg-white shadow-sm text-[#3F51FF]">Under $150,000</button>
+                                <button onclick="setAgi('over')" id="btn-agi-over" class="py-3 text-sm font-bold rounded-lg transition-all text-slate-500">Over $150,000</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="flex flex-col gap-6">
+                        <div class="bg-[#212121] p-8 rounded-2xl text-white">
+                            <p class="text-[10px] uppercase font-bold text-slate-400 tracking-widest mb-2">Annual Safe Harbor Goal</p>
+                            <p class="text-4xl font-bold text-[#3F51FF]" id="calc-total">$0.00</p>
+                            <p class="text-xs mt-3 text-slate-400 leading-relaxed" id="calc-basis">100% of prior year liability</p>
+                        </div>
+                        <div class="bg-blue-50/50 p-8 rounded-2xl border border-blue-100/50">
+                            <p class="text-[10px] uppercase font-bold text-blue-600 tracking-widest mb-2">Quarterly Payment Amount</p>
+                            <p class="text-4xl font-bold text-[#212121]" id="calc-quarterly">$0.00</p>
+                            <p class="text-xs mt-3 text-blue-600 font-medium">Due every quarter</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="view-strategy" class="tab-view hidden">
+            <div class="max-w-4xl mx-auto">
+                <div class="flex justify-between items-end mb-10">
+                    <div>
+                        <h2 class="text-3xl font-bold mb-2">Intelligence Engine</h2>
+                        <p class="text-slate-500 text-sm">Interactive optimization of your tax-saving strategies.</p>
+                    </div>
+                    <button onclick="resetWizard()" class="text-sm font-bold text-[#3F51FF] hover:opacity-80 flex items-center gap-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                        Restart Assessment
+                    </button>
+                </div>
+                
+                <div id="decision-wizard" class="thryv-card p-12 min-h-[500px] flex flex-col justify-center relative overflow-hidden">
+                    <div class="absolute top-0 left-0 h-1.5 bg-[#3F51FF] transition-all duration-700 ease-in-out" id="wizard-progress-bar" style="width: 5%;"></div>
+                    <div id="step-content" class="relative z-10 transition-all duration-300">
+                        <!-- Wizard content injected here -->
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="view-resources" class="tab-view hidden">
+            <h2 class="text-3xl font-bold mb-10">Infrastructure & Payments</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <a href="https://www.irs.gov/payments" target="_blank" class="thryv-card p-8 flex flex-col gap-6 hover:border-[#3F51FF]">
+                    <div class="w-14 h-14 bg-blue-50 rounded-2xl flex items-center justify-center text-[#3F51FF]">
+                        <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-xl mb-2">IRS Direct Pay</h3>
+                        <p class="text-sm text-slate-500 leading-relaxed">Best for individuals. Pay directly from your bank account without registration.</p>
+                    </div>
+                </a>
+                <a href="https://www.eftps.gov" target="_blank" class="thryv-card p-8 flex flex-col gap-6 hover:border-[#3F51FF]">
+                    <div class="w-14 h-14 bg-slate-50 rounded-2xl flex items-center justify-center text-slate-900">
+                        <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 14v3m4-3v3m4-3v3M3 21h18M3 10h18M3 7l9-4 9 4M4 10h16v11H4V10z"></path></svg>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-xl mb-2">EFTPS</h3>
+                        <p class="text-sm text-slate-500 leading-relaxed">Required for many business entities. Secure Treasury system for scheduling.</p>
+                    </div>
+                </a>
+                <div class="thryv-card p-8 flex flex-col gap-6 opacity-60">
+                    <div class="w-14 h-14 bg-slate-100 rounded-2xl flex items-center justify-center text-slate-400">
+                        <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-xl mb-2">Mail Voucher</h3>
+                        <p class="text-sm text-slate-500 leading-relaxed">Form 1040-ES. Send via certified mail. Slower and harder to track.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <script>
+        const QUARTERS = [
+            { id: 'q4-2025', q: 'Q4 2025', period: 'Sep 1 - Dec 31, 2025', due: 'Jan 15, 2026' },
+            { id: 'q1-2026', q: 'Q1 2026', period: 'Jan 1 - Mar 31, 2026', due: 'Apr 15, 2026' },
+            { id: 'q2-2026', q: 'Q2 2026', period: 'Apr 1 - May 31, 2026', due: 'Jun 15, 2026' },
+            { id: 'q3-2026', q: 'Q3 2026', period: 'Jun 1 - Aug 31, 2026', due: 'Sep 15, 2026' },
+            { id: 'q4-2026', q: 'Q4 2026', period: 'Sep 1 - Dec 31, 2026', due: 'Jan 15, 2027' }
+        ];
+
+        let appState = {
+            tracker: {},
+            agi: 'under',
+            lastAction: null,
+            history: []
+        };
+
+        window.onload = () => {
+            const saved = localStorage.getItem('thryviq_tax_v2');
+            if (saved) appState.tracker = JSON.parse(saved);
+            renderTracker();
+            resetWizard();
+        };
+
+        function switchTab(tab) {
+            document.querySelectorAll('.tab-view').forEach(v => v.classList.add('hidden'));
+            document.querySelectorAll('nav button').forEach(b => {
+                b.classList.remove('tab-active', 'text-[#3F51FF]');
+                b.classList.add('text-slate-400');
+            });
+            
+            document.getElementById(`view-${tab}`).classList.remove('hidden');
+            const activeBtn = document.getElementById(`tab-${tab}`);
+            activeBtn.classList.add('tab-active', 'text-[#3F51FF]');
+            activeBtn.classList.remove('text-slate-400');
+        }
+
+        function renderTracker() {
+            const tbody = document.getElementById('tracker-body');
+            tbody.innerHTML = QUARTERS.map(q => {
+                const data = appState.tracker[q.id] || { est: '', paid: false, conf: '', notes: '' };
+                return `
+                    <tr class="hover:bg-blue-50/20 transition-colors">
+                        <td class="p-5 font-bold text-sm">${q.q}</td>
+                        <td class="p-5 text-xs text-slate-500">${q.period}</td>
+                        <td class="p-5 text-xs font-bold text-[#3F51FF]">${q.due}</td>
+                        <td class="p-5">
+                            <input type="text" id="est-${q.id}" value="${data.est}" class="input-field py-1.5" placeholder="$">
+                        </td>
+                        <td class="p-5 text-center">
+                            <input type="checkbox" id="paid-${q.id}" ${data.paid ? 'checked' : ''} class="w-6 h-6 rounded-lg border-slate-300 text-[#3F51FF] focus:ring-[#3F51FF]">
+                        </td>
+                        <td class="p-5">
+                            <input type="text" id="conf-${q.id}" value="${data.conf}" class="input-field py-1.5" placeholder="ID #">
+                        </td>
+                        <td class="p-5">
+                            <input type="text" id="notes-${q.id}" value="${data.notes}" class="input-field py-1.5" placeholder="...">
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function saveData() {
+            QUARTERS.forEach(q => {
+                appState.tracker[q.id] = {
+                    est: document.getElementById(`est-${q.id}`).value,
+                    paid: document.getElementById(`paid-${q.id}`).checked,
+                    conf: document.getElementById(`conf-${q.id}`).value,
+                    notes: document.getElementById(`notes-${q.id}`).value
+                };
+            });
+            localStorage.setItem('thryviq_tax_v2', JSON.stringify(appState.tracker));
+            
+            const btn = document.getElementById('save-btn');
+            const original = btn.innerHTML;
+            btn.innerHTML = 'Data Saved';
+            btn.style.background = '#10b981';
+            setTimeout(() => { 
+                btn.innerHTML = original; 
+                btn.style.background = 'var(--thryv-blue)'; 
+            }, 2000);
+        }
+
+        function setAgi(val) {
+            appState.agi = val;
+            const activeClass = 'py-3 text-sm font-bold rounded-lg transition-all bg-white shadow-sm text-[#3F51FF]';
+            const inactiveClass = 'py-3 text-sm font-bold rounded-lg transition-all text-slate-500';
+            
+            document.getElementById('btn-agi-under').className = val === 'under' ? activeClass : inactiveClass;
+            document.getElementById('btn-agi-over').className = val === 'over' ? activeClass : inactiveClass;
+            calculateSafeHarbor();
+        }
+
+        function calculateSafeHarbor() {
+            const tax = parseFloat(document.getElementById('prior-tax').value) || 0;
+            const multiplier = appState.agi === 'under' ? 1.0 : 1.1;
+            const total = tax * multiplier;
+            
+            document.getElementById('calc-total').innerText = `$${total.toLocaleString(undefined, {minimumFractionDigits: 2})}`;
+            document.getElementById('calc-quarterly').innerText = `$${(total / 4).toLocaleString(undefined, {minimumFractionDigits: 2})}`;
+            document.getElementById('calc-basis').innerText = appState.agi === 'under' 
+                ? 'Target: 100% of prior year total tax.' 
+                : 'Target: 110% of prior year total tax (High Income Adjustment).';
+        }
+
+        const wizardData = {
+            'start': {
+                question: "Welcome to Strategy. What is your primary employment status?",
+                progress: 10,
+                options: [
+                    { text: "I'm a W-2 Employee", next: 'w2_401k' },
+                    { text: "I'm Self-Employed / Business Owner", next: 'se_struct' }
+                ]
+            },
+            'w2_401k': {
+                question: "Does your employer offer a 401(k) with matching?",
+                progress: 30,
+                options: [
+                    { text: "Yes, and I get the match", next: 'w2_max_401k' },
+                    { text: "Yes, but I'm NOT matching", action: "Critical Priority: Immediately increase contributions to the full match percentage. You are leaving free money on the table.", next: 'w2_max_401k' },
+                    { text: "No", next: 'w2_hsa' }
+                ]
+            },
+            'w2_max_401k': {
+                question: "Are you maximizing your total 401(k) contribution?",
+                progress: 45,
+                options: [
+                    { text: "Yes ($24,500 / $32,500 if 50+)", next: 'w2_hsa' },
+                    { text: "No, not yet", action: "Tax Strategy: Focus on reaching the limit to reduce current taxable income.", next: 'w2_hsa' }
+                ]
+            },
+            'w2_hsa': {
+                question: "Do you have a High-Deductible Health Plan (HDHP)?",
+                progress: 60,
+                options: [
+                    { text: "Yes", action: "Wealth Builder: Max out your HSA. It's triple-tax advantaged.", next: 'w2_ira' },
+                    { text: "No", next: 'w2_ira' }
+                ]
+            },
+            'w2_ira': {
+                question: "Are you over income limits for a Roth IRA?",
+                progress: 75,
+                options: [
+                    { text: "Yes (High Income)", action: "Advanced Strategy: Execute a 'Backdoor Roth IRA' by converting Traditional to Roth.", next: 'w2_w4' },
+                    { text: "No", action: "Action: Max out a standard Roth or Traditional IRA.", next: 'w2_w4' }
+                ]
+            },
+            'w2_w4': {
+                question: "Withholding Check: Did you owe >$1k or get >$2k refund last year?",
+                progress: 90,
+                options: [
+                    { text: "Yes", action: "Optimization: Adjust your W-4 using the IRS calculator to zero out liability.", next: 'universal_bracket' },
+                    { text: "No", next: 'universal_bracket' }
+                ]
+            },
+            'se_struct': {
+                question: "What is your business legal structure?",
+                progress: 40,
+                options: [
+                    { text: "Sole Proprietor (Schedule C)", action: "Checklist: Track ALL business expenses and setup a SEP-IRA or Solo 401(k).", next: 'se_quarterly' },
+                    { text: "S-Corp / Partnership", action: "Optimization: Review salary vs. distribution split. Maximize QBI (199A) deduction.", next: 'se_quarterly' }
+                ]
+            },
+            'se_quarterly': {
+                question: "Are you making quarterly estimated payments?",
+                progress: 80,
+                options: [
+                    { text: "Yes, I'm on schedule", next: 'universal_bracket' },
+                    { text: "No / Irregularly", action: "Penalty Warning: You may face IRS penalties. Use the Tracker tab in this tool immediately.", next: 'universal_bracket' }
+                ]
+            },
+            'universal_bracket': {
+                question: "Are you in a lower tax bracket this year than expected in the future?",
+                progress: 92,
+                options: [
+                    { text: "Yes", action: "Future Strategy: Focus on Roth IRA contributions and Roth 401(k) conversions.", next: 'universal_medical' },
+                    { text: "No", action: "Current Strategy: Maximize pre-tax contributions to lower high current rates.", next: 'universal_medical' }
+                ]
+            },
+            'universal_medical': {
+                question: "Do you have significant medical expenses (>7.5% of AGI)?",
+                progress: 95,
+                options: [
+                    { text: "Yes", action: "Deduction Path: You should likely itemize your deductions.", next: 'universal_charity' },
+                    { text: "No", next: 'universal_charity' }
+                ]
+            },
+            'universal_charity': {
+                question: "Do you regularly donate to charity?",
+                progress: 98,
+                options: [
+                    { text: "Yes", action: "Tax Alpha: Donate appreciated stocks or 'bunch' two years of donations into one.", next: 'finish' },
+                    { text: "No", next: 'finish' }
+                ]
+            },
+            'finish': {
+                question: "Analysis Complete",
+                progress: 100,
+                options: [
+                    { text: "Start New Assessment", next: 'start' }
+                ]
+            }
+        };
+
+        function resetWizard() {
+            appState.lastAction = null;
+            renderWizardStep('start');
+        }
+
+        function renderWizardStep(stepKey) {
+            const step = wizardData[stepKey];
+            const content = document.getElementById('step-content');
+            document.getElementById('wizard-progress-bar').style.width = step.progress + '%';
+            
+            let actionHtml = '';
+            if (appState.lastAction) {
+                actionHtml = `
+                    <div class="insight-box mb-8">
+                        <div class="flex items-center gap-2 mb-2">
+                            <div class="w-2 h-2 rounded-full bg-[#3F51FF]"></div>
+                            <p class="text-[10px] font-bold text-[#3F51FF] uppercase tracking-widest">Strategy Recommendation</p>
+                        </div>
+                        <p class="text-[#212121] font-semibold text-lg leading-relaxed">${appState.lastAction}</p>
+                    </div>
+                `;
+            }
+
+            content.innerHTML = `
+                ${actionHtml}
+                <div class="mb-10">
+                    <span class="inline-block bg-blue-50 text-[#3F51FF] text-[10px] font-black px-3 py-1 rounded-full uppercase mb-4 tracking-tighter">Evaluation Stage</span>
+                    <h3 class="text-3xl font-bold text-[#212121] leading-tight">${step.question}</h3>
+                </div>
+                <div class="grid grid-cols-1 gap-4 max-w-xl">
+                    ${step.options.map(opt => `
+                        <button onclick="handleWizardChoice('${opt.next}', '${opt.action || ''}')" class="btn-secondary text-left py-5 px-6 hover:translate-x-1 flex items-center justify-between group">
+                            <span>${opt.text}</span>
+                            <svg class="w-5 h-5 opacity-0 group-hover:opacity-100 transition-opacity" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+                        </button>
+                    `).join('')}
+                </div>
+            `;
+        }
+
+        function handleWizardChoice(nextStep, action) {
+            appState.lastAction = action;
+            renderWizardStep(nextStep);
+        }
+    </script>
+</body>
+</html>
