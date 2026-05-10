@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ThryvIQ: HELOC vs. Home Equity Loan Decision Guide</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f4f8; /* Light blue-gray background */
+            color: #334155; /* Darker text for readability */
+        }
+        .container {
+            max-width: 800px;
+            margin: 2rem auto;
+            padding: 2rem;
+            background-color: #ffffff;
+            border-radius: 1rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        .btn-primary {
+            background-color: #3b82f6; /* Blue */
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            transition: background-color 0.2s ease-in-out;
+        }
+        .btn-primary:hover {
+            background-color: #2563eb; /* Darker blue on hover */
+        }
+        .btn-secondary {
+            background-color: #e2e8f0; /* Light gray */
+            color: #475569; /* Darker gray text */
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            transition: background-color 0.2s ease-in-out;
+        }
+        .btn-secondary:hover {
+            background-color: #cbd5e1; /* Slightly darker gray on hover */
+        }
+        .question-card {
+            border: 1px solid #e2e8f0;
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            background-color: #f8fafc; /* Very light blue-gray for cards */
+        }
+        .result-card {
+            border: 2px solid #3b82f6; /* Blue border for results */
+            background-color: #eff6ff; /* Very light blue background for results */
+            padding: 2rem;
+            border-radius: 1rem;
+            margin-top: 2rem;
+        }
+        .watch-out-tip {
+            background-color: #fef2f2; /* Light red for warning */
+            border-left: 4px solid #ef4444; /* Red border */
+            padding: 1rem;
+            margin-top: 1rem;
+            border-radius: 0.5rem;
+            color: #dc2626; /* Darker red text */
+        }
+    </style>
+</head>
+<body class="p-4">
+    <div class="container">
+        <h1 class="text-3xl font-bold text-center mb-6 text-gray-800">ThryvIQ: HELOC vs. Home Equity Loan Guide</h1>
+        <p class="text-lg text-center mb-8 text-gray-600">
+            Let's find the best home equity option for *your* financial transformation. Answer a few questions to get started!
+        </p>
+
+        <div id="quiz-container">
+            <!-- Questions will be loaded here by JavaScript -->
+        </div>
+
+        <div id="result-container" class="hidden">
+            <div class="result-card">
+                <h2 class="text-2xl font-semibold mb-4 text-gray-800">Your Personalized Recommendation:</h2>
+                <p id="recommendation-text" class="text-lg mb-4"></p>
+                <div id="watch-out-section">
+                    <h3 class="text-xl font-semibold mt-6 mb-3 text-gray-800">"Watch Out!" Tips for Your Chosen Path:</h3>
+                    <ul id="watch-out-list" class="list-disc pl-5">
+                        <!-- Watch out tips will be loaded here -->
+                    </ul>
+                </div>
+                <button id="start-over-btn" class="btn-secondary mt-8 w-full">Start Over</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const quizContainer = document.getElementById('quiz-container');
+        const resultContainer = document.getElementById('result-container');
+        const recommendationText = document.getElementById('recommendation-text');
+        const watchOutList = document.getElementById('watch-out-list');
+        const startOverBtn = document.getElementById('start-over-btn');
+
+        let currentQuestionIndex = 0;
+        let homeEquityLoanScore = 0;
+        let helocScore = 0;
+
+        const questions = [
+            {
+                question: "How do you plan to use the funds?",
+                options: [
+                    { text: "For a single, large expense with a known, fixed cost (e.g., full kitchen remodel, consolidating a specific amount of debt).", type: "HELOAN" },
+                    { text: "For ongoing or uncertain expenses, or as a flexible safety net (e.g., multi-phase renovation, emergency fund, managing unpredictable debt).", type: "HELOC" }
+                ]
+            },
+            {
+                question: "How comfortable are you with changes in your monthly payment?",
+                options: [
+                    { text: "I prefer stable, predictable monthly payments.", type: "HELOAN" },
+                    { text: "I'm comfortable with payments that might fluctuate with market rates.", type: "HELOC" }
+                ]
+            },
+            {
+                question: "What's your preferred repayment style?",
+                options: [
+                    { text: "I want a structured repayment schedule from the start with a clear end date.", type: "HELOAN" },
+                    { text: "I'd like the flexibility of interest-only payments initially, even if payments increase later.", type: "HELOC" }
+                ]
+            },
+            {
+                question: "What's your primary financial goal for this loan?",
+                options: [
+                    { text: "Consolidating a specific, known amount of high-interest debt.", type: "HELOAN" },
+                    { text: "Creating a flexible emergency fund or managing ongoing, unpredictable debt.", type: "HELOC" }
+                ]
+            }
+        ];
+
+        const watchOutTips = {
+            HELOAN: [
+                "Your Home is Collateral: Both types of loans are secured by your home. If payments are not made, the lender can foreclose, leading to loss of your home.",
+                "Risk of Over-borrowing and Depleted Equity: Access to a large sum can tempt you to borrow more than you need or can afford, reducing your home's equity.",
+                "Re-accumulating Debt: If used for debt consolidation, ensure you address underlying spending habits to avoid accumulating new debt while your old debt is now secured by your home.",
+                "Limited Use of Funds: Some Home Equity Loans may have restrictions on how the funds can be used, unlike personal loans."
+            ],
+            HELOC: [
+                "Your Home is Collateral: Both types of loans are secured by your home. If payments are not made, the lender can foreclose, leading to loss of your home.",
+                "Variable Rate Volatility: Most HELOCs have variable interest rates, meaning your payments could increase significantly if market rates rise.",
+                "Interest-Only Payments: While offering short-term relief, interest-only payments during the draw period mean a potentially sharp increase in payments when the principal repayment phase begins.",
+                "Risk of Over-borrowing and Depleted Equity: The ease of access can tempt you to use funds for non-emergencies or overspend, reducing your home's equity.",
+                "Re-accumulating Debt: If used for debt consolidation or as an emergency fund, ensure strong self-control to avoid accumulating new debt while your old debt is now secured by your home."
+            ],
+            BOTH: [
+                "Your Home is Collateral: Both types of loans are secured by your home. If payments are not made, the lender can foreclose, leading to loss of your home.",
+                "Risk of Over-borrowing and Depleted Equity: Access to a large sum can tempt you to borrow more than you need or can afford, reducing your home's equity.",
+                "Re-accumulating Debt: If used for debt consolidation, ensure you address underlying spending habits to avoid accumulating new debt while your old debt is now secured by your home.",
+                "Closing Costs: The majority of home equity loans and HELOCs come with closing fees. While some lenders offer 'no closing costs', always factor in potential expenses."
+            ]
+        };
+
+        function displayQuestion() {
+            if (currentQuestionIndex < questions.length) {
+                const q = questions[currentQuestionIndex];
+                quizContainer.innerHTML = `
+                    <div class="question-card">
+                        <p class="text-xl font-medium mb-4 text-gray-700">Question ${currentQuestionIndex + 1} of ${questions.length}: ${q.question}</p>
+                        <div class="space-y-3">
+                            ${q.options.map((option, index) => `
+                                <button class="block w-full text-left btn-secondary py-3 px-4 rounded-lg hover:bg-blue-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50"
+                                        onclick="handleAnswer('${option.type}')">
+                                    ${option.text}
+                                </button>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+            } else {
+                showResult();
+            }
+        }
+
+        function handleAnswer(type) {
+            if (type === "HELOAN") {
+                homeEquityLoanScore++;
+            } else {
+                helocScore++;
+            }
+            currentQuestionIndex++;
+            displayQuestion();
+        }
+
+        function showResult() {
+            quizContainer.classList.add('hidden');
+            resultContainer.classList.remove('hidden');
+
+            let recommendation = "";
+            let tipsToShow = [];
+
+            if (homeEquityLoanScore > helocScore) {
+                recommendation = "Based on your answers, a <span class='font-bold text-blue-600'>Home Equity Loan</span> might be a better fit for your situation. It offers predictability with a fixed interest rate and consistent payments, ideal for a specific, one-time financial need.";
+                tipsToShow = watchOutTips.HELOAN;
+            } else if (helocScore > homeEquityLoanScore) {
+                recommendation = "Based on your answers, a <span class='font-bold text-blue-600'>Home Equity Line of Credit (HELOC)</span> might be a better fit for your situation. Its flexibility with a revolving line of credit and variable rates can be ideal for ongoing needs or as a versatile emergency fund.";
+                tipsToShow = watchOutTips.HELOC;
+            } else {
+                recommendation = "It looks like your preferences are balanced between both options! Both a <span class='font-bold text-blue-600'>Home Equity Loan</span> and a <span class='font-bold text-blue-600'>HELOC</span> could be viable. Consider diving deeper into the nuances of each, especially regarding interest rate comfort and repayment flexibility, to make your final decision.";
+                tipsToShow = watchOutTips.BOTH; // Show general tips for both
+            }
+
+            recommendationText.innerHTML = recommendation;
+            watchOutList.innerHTML = tipsToShow.map(tip => `<li class="watch-out-tip">${tip}</li>`).join('');
+        }
+
+        function resetQuiz() {
+            currentQuestionIndex = 0;
+            homeEquityLoanScore = 0;
+            helocScore = 0;
+            quizContainer.classList.remove('hidden');
+            resultContainer.classList.add('hidden');
+            displayQuestion();
+        }
+
+        // Event listener for the "Start Over" button
+        startOverBtn.addEventListener('click', resetQuiz);
+
+        // Initial display of the first question
+        displayQuestion();
+    </script>
+</body>
+</html>
+
+
