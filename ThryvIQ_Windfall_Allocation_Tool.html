@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Windfall Allocation Tool | ThryvIQ</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc;
+        }
+        .slider-thumb::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 18px;
+            height: 18px;
+            background: #2563eb;
+            cursor: pointer;
+            border-radius: 50%;
+            border: 2px solid white;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+        }
+        .slider-thumb::-moz-range-thumb {
+            width: 18px;
+            height: 18px;
+            background: #2563eb;
+            cursor: pointer;
+            border-radius: 50%;
+            border: 2px solid white;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+        }
+        .card {
+            background: white;
+            border-radius: 1rem;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+        }
+        input[type="range"] {
+            -webkit-appearance: none;
+            height: 6px;
+            background: #e2e8f0;
+            border-radius: 5px;
+            outline: none;
+        }
+    </style>
+</head>
+<body class="p-4 md:p-8">
+    <div class="max-w-2xl mx-auto">
+        <!-- Header -->
+        <header class="mb-8 text-center">
+            <h1 class="text-3xl font-bold text-slate-900 mb-2">Windfall Allocation Tool</h1>
+            <p class="text-slate-600">Turn your unexpected income into progress. Decide exactly how your bonus, refund, or gift should work for you.</p>
+        </header>
+
+        <div class="card p-6 md:p-8">
+            <!-- Input Section -->
+            <section class="space-y-6">
+                <div>
+                    <label for="totalAmount" class="block text-sm font-semibold text-slate-700 mb-2">Total Windfall Amount ($)</label>
+                    <div class="relative">
+                        <span class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 font-medium">$</span>
+                        <input type="number" id="totalAmount" placeholder="e.g. 1000" 
+                            class="w-full pl-8 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all text-lg font-medium">
+                    </div>
+                </div>
+
+                <div class="flex items-center justify-between pt-2">
+                    <span class="text-sm font-medium text-slate-500 uppercase tracking-wider">Allocation Splits</span>
+                    <button onclick="setPreset(50, 30, 20, 0)" class="text-xs font-semibold text-blue-600 hover:text-blue-700 bg-blue-50 px-3 py-1.5 rounded-full transition-colors">
+                        Use 50/30/20 Rule
+                    </button>
+                </div>
+
+                <!-- Sliders Container -->
+                <div class="space-y-5">
+                    <!-- Debt -->
+                    <div>
+                        <div class="flex justify-between mb-2">
+                            <label class="text-sm font-medium text-slate-700">Debt Payoff</label>
+                            <span id="debtVal" class="text-sm font-bold text-blue-600">0%</span>
+                        </div>
+                        <input type="range" id="debtPct" min="0" max="100" value="0" class="w-full slider-thumb">
+                    </div>
+
+                    <!-- Savings -->
+                    <div>
+                        <div class="flex justify-between mb-2">
+                            <label class="text-sm font-medium text-slate-700">General Savings</label>
+                            <span id="savingsVal" class="text-sm font-bold text-blue-600">0%</span>
+                        </div>
+                        <input type="range" id="savingsPct" min="0" max="100" value="0" class="w-full slider-thumb">
+                    </div>
+
+                    <!-- Fun -->
+                    <div>
+                        <div class="flex justify-between mb-2">
+                            <label class="text-sm font-medium text-slate-700">Fun / Flexible Spending</label>
+                            <span id="funVal" class="text-sm font-bold text-blue-600">0%</span>
+                        </div>
+                        <input type="range" id="funPct" min="0" max="100" value="0" class="w-full slider-thumb">
+                    </div>
+
+                    <!-- Emergency -->
+                    <div>
+                        <div class="flex justify-between mb-2">
+                            <label class="text-sm font-medium text-slate-700">Emergency Fund (Optional)</label>
+                            <span id="emergencyVal" class="text-sm font-bold text-blue-600">0%</span>
+                        </div>
+                        <input type="range" id="emergencyPct" min="0" max="100" value="0" class="w-full slider-thumb">
+                    </div>
+                </div>
+
+                <!-- Status & Warnings -->
+                <div id="allocationStatus" class="p-4 rounded-lg flex items-center justify-between bg-slate-100 transition-all">
+                    <span id="statusText" class="text-sm font-medium text-slate-700">Total Allocated: 0%</span>
+                    <span id="remainingText" class="text-sm font-bold">Remaining: 100%</span>
+                </div>
+
+                <div id="warningBox" class="hidden p-4 bg-amber-50 border border-amber-200 text-amber-800 rounded-lg text-sm">
+                    ⚠️ Your allocations exceed 100%. Please adjust them to match your total windfall.
+                </div>
+
+                <button onclick="calculate()" class="w-full py-4 bg-slate-900 text-white font-bold rounded-xl hover:bg-black transition-all shadow-lg active:scale-[0.98]">
+                    Calculate My Plan
+                </button>
+            </section>
+
+            <!-- Results Section -->
+            <section id="results" class="hidden mt-10 pt-8 border-t border-slate-100">
+                <h3 class="text-xl font-bold text-slate-900 mb-6 text-center">Your Allocation Strategy</h3>
+                
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+                    <div class="bg-blue-50 p-4 rounded-xl">
+                        <span class="block text-xs uppercase text-blue-600 font-bold mb-1">Total Windfall</span>
+                        <span id="resTotal" class="text-xl font-bold text-slate-900">$0.00</span>
+                    </div>
+                    <div class="bg-indigo-50 p-4 rounded-xl">
+                        <span class="block text-xs uppercase text-indigo-600 font-bold mb-1">Total Allocated</span>
+                        <span id="resAllocated" class="text-xl font-bold text-slate-900">$0.00</span>
+                    </div>
+                    <div id="resRemainingCard" class="bg-slate-50 p-4 rounded-xl transition-colors">
+                        <span class="block text-xs uppercase text-slate-500 font-bold mb-1">Unallocated</span>
+                        <span id="resRemaining" class="text-xl font-bold text-slate-900">$0.00</span>
+                    </div>
+                </div>
+
+                <div class="space-y-4 mb-8">
+                    <div id="progressBars" class="flex h-4 rounded-full overflow-hidden bg-slate-100">
+                        <div id="barDebt" class="bg-blue-500 transition-all duration-500" style="width: 0%"></div>
+                        <div id="barSavings" class="bg-emerald-500 transition-all duration-500" style="width: 0%"></div>
+                        <div id="barFun" class="bg-amber-400 transition-all duration-500" style="width: 0%"></div>
+                        <div id="barEmergency" class="bg-purple-500 transition-all duration-500" style="width: 0%"></div>
+                    </div>
+                </div>
+
+                <div class="overflow-hidden border border-slate-100 rounded-xl">
+                    <table class="w-full text-left text-sm">
+                        <thead class="bg-slate-50 text-slate-500 uppercase text-xs">
+                            <tr>
+                                <th class="px-4 py-3 font-bold">Category</th>
+                                <th class="px-4 py-3 font-bold text-right">Percent</th>
+                                <th class="px-4 py-3 font-bold text-right">Amount</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableBody" class="divide-y divide-slate-100">
+                            <!-- Rows injected by JS -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="mt-8 bg-green-50 p-6 rounded-2xl border border-green-100 text-center">
+                    <p id="motivationalNote" class="text-green-800 font-medium italic">“Every dollar can move you closer to your goals.”</p>
+                </div>
+            </section>
+        </div>
+
+        <footer class="mt-8 text-center text-slate-400 text-xs">
+            &copy; 2024 ThryvIQ Financial Planning Tools. For informational purposes only.
+        </footer>
+    </div>
+
+    <script>
+        const inputs = ['debtPct', 'savingsPct', 'funPct', 'emergencyPct'];
+        const formatCurrency = (val) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(val);
+
+        function updateLabels() {
+            let total = 0;
+            inputs.forEach(id => {
+                const val = parseInt(document.getElementById(id).value);
+                document.getElementById(id.replace('Pct', 'Val')).textContent = val + '%';
+                total += val;
+            });
+
+            const status = document.getElementById('allocationStatus');
+            const warning = document.getElementById('warningBox');
+            const remText = document.getElementById('remainingText');
+            const statusText = document.getElementById('statusText');
+
+            statusText.textContent = `Total Allocated: ${total}%`;
+            
+            if (total > 100) {
+                status.className = "p-4 rounded-lg flex items-center justify-between bg-red-100 border border-red-200 transition-all";
+                warning.classList.remove('hidden');
+                remText.textContent = `Over limit: ${total - 100}%`;
+                remText.className = "text-sm font-bold text-red-600";
+            } else if (total === 100) {
+                status.className = "p-4 rounded-lg flex items-center justify-between bg-green-100 border border-green-200 transition-all";
+                warning.classList.add('hidden');
+                remText.textContent = "Fully Allocated! ✓";
+                remText.className = "text-sm font-bold text-green-700";
+            } else {
+                status.className = "p-4 rounded-lg flex items-center justify-between bg-slate-100 transition-all";
+                warning.classList.add('hidden');
+                remText.textContent = `Remaining: ${100 - total}%`;
+                remText.className = "text-sm font-bold text-slate-600";
+            }
+        }
+
+        function setPreset(d, s, f, e) {
+            document.getElementById('debtPct').value = d;
+            document.getElementById('savingsPct').value = s;
+            document.getElementById('funPct').value = f;
+            document.getElementById('emergencyPct').value = e;
+            updateLabels();
+            calculate();
+        }
+
+        function calculate() {
+            const amount = parseFloat(document.getElementById('totalAmount').value) || 0;
+            const results = document.getElementById('results');
+            
+            if (amount <= 0) {
+                alert("Please enter a windfall amount to see your breakdown.");
+                return;
+            }
+
+            results.classList.remove('hidden');
+            results.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+            const debt = parseInt(document.getElementById('debtPct').value);
+            const savings = parseInt(document.getElementById('savingsPct').value);
+            const fun = parseInt(document.getElementById('funPct').value);
+            const emergency = parseInt(document.getElementById('emergencyPct').value);
+            
+            const totalPct = debt + savings + fun + emergency;
+            const allocatedAmt = (totalPct / 100) * amount;
+            const remainingAmt = amount - allocatedAmt;
+
+            // Summary data
+            document.getElementById('resTotal').textContent = formatCurrency(amount);
+            document.getElementById('resAllocated').textContent = formatCurrency(allocatedAmt);
+            document.getElementById('resRemaining').textContent = formatCurrency(Math.max(0, remainingAmt));
+
+            const remCard = document.getElementById('resRemainingCard');
+            if (remainingAmt > 0) {
+                remCard.className = "bg-amber-50 p-4 rounded-xl";
+            } else if (remainingAmt < 0) {
+                remCard.className = "bg-red-50 p-4 rounded-xl";
+            } else {
+                remCard.className = "bg-green-50 p-4 rounded-xl";
+            }
+
+            // Progress Bars
+            document.getElementById('barDebt').style.width = (debt/totalPct * 100 || 0) + '%';
+            document.getElementById('barSavings').style.width = (savings/totalPct * 100 || 0) + '%';
+            document.getElementById('barFun').style.width = (fun/totalPct * 100 || 0) + '%';
+            document.getElementById('barEmergency').style.width = (emergency/totalPct * 100 || 0) + '%';
+
+            // Table Body
+            const items = [
+                { name: 'Debt Payoff', pct: debt, color: 'text-blue-600' },
+                { name: 'Savings', pct: savings, color: 'text-emerald-600' },
+                { name: 'Fun / Flexible', pct: fun, color: 'text-amber-600' },
+                { name: 'Emergency Fund', pct: emergency, color: 'text-purple-600' }
+            ];
+
+            const tbody = document.getElementById('tableBody');
+            tbody.innerHTML = '';
+            items.forEach(item => {
+                if (item.pct > 0) {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td class="px-4 py-3 font-semibold text-slate-700">${item.name}</td>
+                        <td class="px-4 py-3 text-right font-medium text-slate-500">${item.pct}%</td>
+                        <td class="px-4 py-3 text-right font-bold ${item.color}">${formatCurrency((item.pct / 100) * amount)}</td>
+                    `;
+                    tbody.appendChild(row);
+                }
+            });
+        }
+
+        // Attach listeners
+        inputs.forEach(id => {
+            document.getElementById(id).addEventListener('input', updateLabels);
+        });
+
+        // Initialize UI
+        updateLabels();
+    </script>
+</body>
+</html>
